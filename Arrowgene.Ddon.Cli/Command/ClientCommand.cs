@@ -41,20 +41,22 @@ namespace Arrowgene.Ddon.Cli.Command
             if (parameter.ArgumentMap.ContainsKey("export"))
             {
                 DirectoryInfo outDirectory = new DirectoryInfo(parameter.ArgumentMap["export"]);
-                ExportResourceRepository(romDirectory, outDirectory);
+                ExportResourceRepository(romDirectory, outDirectory, parameter.ArgumentMap.ContainsKey("pretty"));
                 return CommandResultType.Exit;
             }
             return CommandResultType.Exit;
         }
 
-        public void ExportResourceRepository(DirectoryInfo romDirectory, DirectoryInfo outDir)
+        public void ExportResourceRepository(DirectoryInfo romDirectory, DirectoryInfo outDir, bool prettyPrint)
         {
             ClientResourceRepository repo = new ClientResourceRepository();
             repo.Load(romDirectory);
-            string json = JsonSerializer.Serialize(repo, new JsonSerializerOptions
+            JsonSerializerOptions options = new JsonSerializerOptions();
+            if (prettyPrint)
             {
-                WriteIndented = true
-            });
+                options.WriteIndented = true;
+            }
+            string json = JsonSerializer.Serialize(repo, options);
             string outPath = Path.Combine(outDir.FullName, "repo.json");
             File.WriteAllText(outPath, json);
             Logger.Info($"Done: {outPath}");
