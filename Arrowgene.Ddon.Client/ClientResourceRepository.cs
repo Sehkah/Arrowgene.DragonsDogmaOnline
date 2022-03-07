@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using Arrowgene.Ddon.Client.Data;
 using Arrowgene.Ddon.Client.Resource;
@@ -17,6 +17,7 @@ namespace Arrowgene.Ddon.Client
         public StageList StageList { get; private set; }
         public LandListLal LandList { get; private set; }
         public StageToSpot StageToSpot { get; private set; }
+        public EnemyGroup EnemyGroup { get; private set; }
         public Gmd FieldAreaNames { get; private set; }
         public Dictionary<uint, LocationData> StageLocations { get; private set; }
         public Dictionary<uint, List<FieldAreaMarkerInfo.MarkerInfo>> StageOmMarker { get; private set; }
@@ -25,6 +26,8 @@ namespace Arrowgene.Ddon.Client
         public Dictionary<uint, List<FieldAreaMarkerInfo.MarkerInfo>> StageEctMarker { get; private set; }
         public Dictionary<uint, List<FieldAreaAdjoinList.AdjoinInfo>> StageAdJoin { get; private set; }
         public Dictionary<uint, List<StageToSpot.Entry>> StageSpots { get; private set; }
+        public Dictionary<uint, List<EnemyGroup.Entry>> EnemyGroups { get; private set; }
+
         public ClientData Data { get; private set; }
 
         private DirectoryInfo _directory;
@@ -42,6 +45,7 @@ namespace Arrowgene.Ddon.Client
             StageEctMarker = new Dictionary<uint, List<FieldAreaMarkerInfo.MarkerInfo>>();
             StageAdJoin = new Dictionary<uint, List<FieldAreaAdjoinList.AdjoinInfo>>();
             StageSpots = new Dictionary<uint, List<StageToSpot.Entry>>();
+            EnemyGroups = new Dictionary<uint, List<EnemyGroup.Entry>>();
 
             // Client Resources
             AreaStageList = new AreaStageList();
@@ -50,6 +54,7 @@ namespace Arrowgene.Ddon.Client
             FieldAreaList = new FieldAreaList();
             LandList = new LandListLal();
             StageToSpot = new StageToSpot();
+            EnemyGroup = new EnemyGroup();
         }
 
         public void Load(DirectoryInfo romDirectory)
@@ -67,6 +72,7 @@ namespace Arrowgene.Ddon.Client
             StageList = GetResource<StageList>("base.arc", "scr/stage_list");
             FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list");
             StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot");
+            EnemyGroup = GetFile<EnemyGroup>("game_common.arc", "param/enemy_group");
             FieldAreaNames = GetResource<Gmd>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
 
             foreach (StageList.Info sli in StageList.StageInfos)
@@ -147,6 +153,16 @@ namespace Arrowgene.Ddon.Client
                 }
 
                 StageSpots[sts.StageNo].Add(sts);
+            }
+
+            foreach (EnemyGroup.Entry emg in EnemyGroup.Entries)
+            {
+                if (!EnemyGroups.ContainsKey(emg.mEnemyGroupId))
+                {
+                    EnemyGroups[emg.mEnemyGroupId] = new List<EnemyGroup.Entry>();
+                }
+
+                EnemyGroups[emg.mEnemyGroupId].Add(emg);
             }
 
             // Land -> Area -> Stage -> Spot
