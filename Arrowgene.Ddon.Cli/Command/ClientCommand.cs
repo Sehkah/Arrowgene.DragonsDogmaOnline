@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -51,12 +51,15 @@ namespace Arrowgene.Ddon.Cli.Command
         {
             ClientResourceRepository repo = new ClientResourceRepository();
             repo.Load(romDirectory);
-            string json = JsonSerializer.Serialize(repo);
+            string json = JsonSerializer.Serialize(repo, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
             string outPath = Path.Combine(outDir.FullName, "repo.json");
             File.WriteAllText(outPath, json);
             Logger.Info($"Done: {outPath}");
         }
-        
+
         public void DumpPaths(DirectoryInfo romDirectory, DirectoryInfo outDir)
         {
             if (outDir == null)
