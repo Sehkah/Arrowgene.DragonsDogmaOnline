@@ -9,7 +9,8 @@ namespace Arrowgene.Ddon.Client.Resource
         public class Info
         {
             public uint StageNo { get; set; }
-            public string Type { get; set; }
+            public uint Type { get; set; }
+            public string TypeName { get; set; }
             public byte RecommendLevel { get; set; }
             public uint MessageId { get; set; }
             public uint Version { get; set; }
@@ -58,7 +59,8 @@ namespace Arrowgene.Ddon.Client.Resource
         {
             Info entry = new Info();
             entry.StageNo = ReadUInt32(buffer);
-            entry.Type = ((STAGE_TYPE)ReadUInt32(buffer)).ToString();
+            entry.Type = ReadUInt32(buffer);
+            entry.TypeName = ((STAGE_TYPE)entry.Type).ToString();
             entry.RecommendLevel = ReadByte(buffer);
             entry.MessageId = ReadUInt32(buffer);
             entry.Version = ReadUInt32(buffer);
