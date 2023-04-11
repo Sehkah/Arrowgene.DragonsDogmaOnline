@@ -2,7 +2,6 @@
 using System.IO;
 using Arrowgene.Ddon.Client.Data;
 using Arrowgene.Ddon.Client.Resource;
-using Arrowgene.Ddon.Shared;
 using Arrowgene.Logging;
 
 namespace Arrowgene.Ddon.Client
@@ -15,6 +14,7 @@ namespace Arrowgene.Ddon.Client
         public AreaStageList AreaStageList { get; private set; }
         public AreaList AreaList { get; private set; }
         public StageList StageList { get; private set; }
+        public EventList EventList { get; private set; }
         public JobBaseParam JobBaseParam { get; private set; }
         public JobAdjustParam JobAdjustParam { get; private set; }
         public JobLevelUpTbl2 JobLevelUpTbl2Job01 { get; private set; }
@@ -26,6 +26,10 @@ namespace Arrowgene.Ddon.Client
         public JobLevelUpTbl2 JobLevelUpTbl2Job07 { get; private set; }
         public JobLevelUpTbl2 JobLevelUpTbl2Job08 { get; private set; }
         public JobLevelUpTbl2 JobLevelUpTbl2Job09 { get; private set; }
+        public StatusGainTable AbilityGainTable { get; private set; }
+        public StatusGainTable HpGainTable { get; private set; }
+        public StatusGainTable LostTimerGainTable { get; private set; }
+        public StatusGainTable StaminaGainTable { get; private set; }
         public LandListLal LandList { get; private set; }
         public StageToSpot StageToSpot { get; private set; }
         public GuiMessage FieldAreaNames { get; private set; }
@@ -60,6 +64,8 @@ namespace Arrowgene.Ddon.Client
             AreaStageList = new AreaStageList();
             AreaList = new AreaList();
             StageList = new StageList();
+
+            EventList = new EventList();
             JobBaseParam = new JobBaseParam();
             JobAdjustParam = new JobAdjustParam();
             JobLevelUpTbl2Job01 = new JobLevelUpTbl2();
@@ -71,6 +77,11 @@ namespace Arrowgene.Ddon.Client
             JobLevelUpTbl2Job07 = new JobLevelUpTbl2();
             JobLevelUpTbl2Job08 = new JobLevelUpTbl2();
             JobLevelUpTbl2Job09 = new JobLevelUpTbl2();
+            AbilityGainTable = new StatusGainTable();
+            HpGainTable = new StatusGainTable();
+            LostTimerGainTable = new StatusGainTable();
+            StaminaGainTable = new StatusGainTable();
+
             FieldAreaList = new FieldAreaList();
             LandList = new LandListLal();
             StageToSpot = new StageToSpot();
@@ -84,13 +95,15 @@ namespace Arrowgene.Ddon.Client
                 Logger.Error("Rom Path Invalid");
                 return;
             }
-            
+
             WarpLocationList = GetResource<WarpLocationList>("ui/gui_cmn.arc", "ui/03_warp/warpLocationList", "wal");
             WarpLocationListRim = GetResource<WarpLocationList>("ui/uGUIRimWarp.arc", "ui/03_warp/lobbyWarpLocationList", "wal");
             LandList = GetResource<LandListLal>("base.arc", "scr/land_list");
             AreaStageList = GetResource<AreaStageList>("base.arc", "scr/area_stage_list");
             AreaList = GetResource<AreaList>("base.arc", "scr/area_list");
             StageList = GetResource<StageList>("base.arc", "scr/stage_list");
+
+            EventList = GetFile<EventList>("base.arc", "event/event_list", "evp");
             JobBaseParam = GetFile<JobBaseParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/base", "jobbase");
             JobAdjustParam = GetFile<JobAdjustParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/baseStatus", "ajp");
             JobLevelUpTbl2Job01 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job01", "jlt2");
@@ -102,80 +115,86 @@ namespace Arrowgene.Ddon.Client
             JobLevelUpTbl2Job07 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job07", "jlt2");
             JobLevelUpTbl2Job08 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job08", "jlt2");
             JobLevelUpTbl2Job09 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job09", "jlt2");
-            
+            AbilityGainTable = GetFile<StatusGainTable>("base.arc", "obj/pl/pl000000/param/etc/ability_gain_table", "sg_tbl");
+            HpGainTable = GetFile<StatusGainTable>("base.arc", "obj/pl/pl000000/param/etc/hp_gain_table", "sg_tbl");
+            LostTimerGainTable = GetFile<StatusGainTable>("base.arc", "obj/pl/pl000000/param/etc/lostTimer_gain_table", "sg_tbl");
+            StaminaGainTable = GetFile<StatusGainTable>("base.arc", "obj/pl/pl000000/param/etc/stamina_gain_table", "sg_tbl");
+
             FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list");
             StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot");
             FieldAreaNames = GetResource<GuiMessage>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
 
-            foreach (StageList.Info sli in StageList.StageInfos)
-            {
-                LocationData lcd = GetResource_NoLog<LocationData>(
-                    $"stage/st{sli.StageNo:0000}/st{sli.StageNo:0000}.arc",
-                    $"scr/st{sli.StageNo:0000}/etc/st{sli.StageNo:0000}",
-                    "lcd"
-                );
-                if (lcd != null)
-                {
-                    if (!StageLocations.ContainsKey(sli.StageNo))
-                    {
-                        StageLocations.Add(sli.StageNo, lcd);
-                    }
-                }
-            }
+            // TODO Throws exception regarding indexes while searching for file inside arc file.
+            // foreach (StageList.Info sli in StageList.StageInfos)
+            // {
+            //     LocationData lcd = GetResource_NoLog<LocationData>(
+            //         $"stage/st{sli.StageNo:0000}/st{sli.StageNo:0000}.arc",
+            //         $"scr/st{sli.StageNo:0000}/etc/st{sli.StageNo:0000}",
+            //         "lcd"
+            //     );
+            //     if (lcd != null)
+            //     {
+            //         if (!StageLocations.ContainsKey(sli.StageNo))
+            //         {
+            //             StageLocations.Add(sli.StageNo, lcd);
+            //         }
+            //     }
+            // }
 
-            foreach (FieldAreaList.FieldAreaInfo fai in FieldAreaList.FieldAreaInfos)
-            {
-                GuiMessage.Entry areaName = FieldAreaNames.Entries[(int) fai.GmdIdx];
-                FieldAreaMarkerInfo omMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_om",
-                    "fmi"
-                );
-                if (omMarker != null)
-                {
-                    AddMarker(omMarker.MarkerInfos, StageOmMarker);
-                }
-
-                FieldAreaMarkerInfo sceMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_sce",
-                    "fmi"
-                );
-                if (sceMarker != null)
-                {
-                    AddMarker(sceMarker.MarkerInfos, StageSceMarker);
-                }
-
-                FieldAreaMarkerInfo npcMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_npc",
-                    "fmi"
-                );
-                if (npcMarker != null)
-                {
-                    AddMarker(npcMarker.MarkerInfos, StageNpcMarker);
-                }
-
-                FieldAreaMarkerInfo ectMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_ect",
-                    "fmi"
-                );
-                if (ectMarker != null)
-                {
-                    AddMarker(ectMarker.MarkerInfos, StageEctMarker);
-                }
-
-                FieldAreaAdjoinList adjoin = GetResource_NoLog<FieldAreaAdjoinList>(
-                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_adjoin",
-                    "faa"
-                );
-                if (adjoin != null)
-                {
-                    AddAdjoin(adjoin.AdjoinInfos, StageAdJoin);
-                }
-            }
+            // TODO Throws exception regarding indexes while searching for file inside arc file.
+            // foreach (FieldAreaList.FieldAreaInfo fai in FieldAreaList.FieldAreaInfos)
+            // {
+            //     GuiMessage.Entry areaName = FieldAreaNames.Entries[(int)fai.GmdIdx];
+            //     FieldAreaMarkerInfo omMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_om",
+            //         "fmi"
+            //     );
+            //     if (omMarker != null)
+            //     {
+            //         AddMarker(omMarker.MarkerInfos, StageOmMarker);
+            //     }
+            //
+            //     FieldAreaMarkerInfo sceMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_sce",
+            //         "fmi"
+            //     );
+            //     if (sceMarker != null)
+            //     {
+            //         AddMarker(sceMarker.MarkerInfos, StageSceMarker);
+            //     }
+            //
+            //     FieldAreaMarkerInfo npcMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_npc",
+            //         "fmi"
+            //     );
+            //     if (npcMarker != null)
+            //     {
+            //         AddMarker(npcMarker.MarkerInfos, StageNpcMarker);
+            //     }
+            //
+            //     FieldAreaMarkerInfo ectMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_ect",
+            //         "fmi"
+            //     );
+            //     if (ectMarker != null)
+            //     {
+            //         AddMarker(ectMarker.MarkerInfos, StageEctMarker);
+            //     }
+            //
+            //     FieldAreaAdjoinList adjoin = GetResource_NoLog<FieldAreaAdjoinList>(
+            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_adjoin",
+            //         "faa"
+            //     );
+            //     if (adjoin != null)
+            //     {
+            //         AddAdjoin(adjoin.AdjoinInfos, StageAdJoin);
+            //     }
+            // }
 
             foreach (StageToSpot.Entry sts in StageToSpot.Entries)
             {
@@ -222,7 +241,6 @@ namespace Arrowgene.Ddon.Client
                     }
                 }
             }
-
         }
 
         private void AddMarker(List<FieldAreaMarkerInfo.MarkerInfo> markers,
@@ -230,12 +248,12 @@ namespace Arrowgene.Ddon.Client
         {
             foreach (FieldAreaMarkerInfo.MarkerInfo marker in markers)
             {
-                if (!dst.ContainsKey((uint) marker.StageNo))
+                if (!dst.ContainsKey((uint)marker.StageNo))
                 {
-                    dst[(uint) marker.StageNo] = new List<FieldAreaMarkerInfo.MarkerInfo>();
+                    dst[(uint)marker.StageNo] = new List<FieldAreaMarkerInfo.MarkerInfo>();
                 }
 
-                dst[(uint) marker.StageNo].Add(marker);
+                dst[(uint)marker.StageNo].Add(marker);
             }
         }
 
@@ -244,12 +262,12 @@ namespace Arrowgene.Ddon.Client
         {
             foreach (FieldAreaAdjoinList.AdjoinInfo adjoin in adjoins)
             {
-                if (!dst.ContainsKey((uint) adjoin.DestinationStageNo))
+                if (!dst.ContainsKey((uint)adjoin.DestinationStageNo))
                 {
-                    dst[(uint) adjoin.DestinationStageNo] = new List<FieldAreaAdjoinList.AdjoinInfo>();
+                    dst[(uint)adjoin.DestinationStageNo] = new List<FieldAreaAdjoinList.AdjoinInfo>();
                 }
 
-                dst[(uint) adjoin.DestinationStageNo].Add(adjoin);
+                dst[(uint)adjoin.DestinationStageNo].Add(adjoin);
             }
         }
 
@@ -265,7 +283,7 @@ namespace Arrowgene.Ddon.Client
 
         private T GetResource_NoLog<T>(string arcPath, string filePath, string ext = null) where T : ResourceFile, new()
         {
-           return ArcArchive.GetResource_NoLog<T>(_directory, arcPath, filePath, ext);
+            return ArcArchive.GetResource_NoLog<T>(_directory, arcPath, filePath, ext);
         }
     }
 }
