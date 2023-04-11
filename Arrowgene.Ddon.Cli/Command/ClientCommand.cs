@@ -334,7 +334,10 @@ namespace Arrowgene.Ddon.Cli.Command
         {
             ClientResourceRepository repo = new ClientResourceRepository();
             repo.Load(romDirectory);
-            string json = JsonSerializer.Serialize(repo);
+            string json = JsonSerializer.Serialize(repo, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
             string outPath = Path.Combine(outDir.FullName, "repo.json");
             File.WriteAllText(outPath, json);
             Logger.Info($"Done: {outPath}");

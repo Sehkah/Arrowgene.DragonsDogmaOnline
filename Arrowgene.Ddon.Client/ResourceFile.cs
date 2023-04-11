@@ -24,6 +24,7 @@ namespace Arrowgene.Ddon.Client
 
             byte[] magicTag = buffer.ReadBytes(4);
             Magic = Encoding.UTF8.GetString(magicTag);
+            Logger.Debug($"Reading resource file with magic id '{Magic}'.");
             // TODO Magic Validation
             ReadResource(buffer);
             if (buffer.Position != buffer.Size)
