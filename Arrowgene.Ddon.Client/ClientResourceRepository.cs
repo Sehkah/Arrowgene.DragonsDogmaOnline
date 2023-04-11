@@ -30,6 +30,9 @@ namespace Arrowgene.Ddon.Client
         public StatusGainTable HpGainTable { get; private set; }
         public StatusGainTable LostTimerGainTable { get; private set; }
         public StatusGainTable StaminaGainTable { get; private set; }
+        public QuestSequenceList QuestSequenceList { get; private set; }
+        public JobTutorialQuestList JobTutorialQuestList { get; private set; }
+        public TutorialQuestGroup TutorialQuestGroup { get; private set; }
         public LandListLal LandList { get; private set; }
         public StageToSpot StageToSpot { get; private set; }
         public GuiMessage FieldAreaNames { get; private set; }
@@ -81,6 +84,10 @@ namespace Arrowgene.Ddon.Client
             HpGainTable = new StatusGainTable();
             LostTimerGainTable = new StatusGainTable();
             StaminaGainTable = new StatusGainTable();
+            
+            QuestSequenceList = new QuestSequenceList();
+            JobTutorialQuestList = new JobTutorialQuestList();
+            TutorialQuestGroup = new TutorialQuestGroup();
 
             FieldAreaList = new FieldAreaList();
             LandList = new LandListLal();
@@ -120,6 +127,10 @@ namespace Arrowgene.Ddon.Client
             LostTimerGainTable = GetFile<StatusGainTable>("base.arc", "obj/pl/pl000000/param/etc/lostTimer_gain_table", "sg_tbl");
             StaminaGainTable = GetFile<StatusGainTable>("base.arc", "obj/pl/pl000000/param/etc/stamina_gain_table", "sg_tbl");
 
+            QuestSequenceList = GetFile<QuestSequenceList>("game_common.arc", "quest/QuestSequence", "qsq");
+            JobTutorialQuestList = GetResource<JobTutorialQuestList>("game_common.arc", "quest/jobTutorialQuestList", "jtq");
+            TutorialQuestGroup = GetResource<TutorialQuestGroup>("game_common.arc", "quest/tutorialQuestGroup", "tqg");
+            
             FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list");
             StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot");
             FieldAreaNames = GetResource<GuiMessage>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
