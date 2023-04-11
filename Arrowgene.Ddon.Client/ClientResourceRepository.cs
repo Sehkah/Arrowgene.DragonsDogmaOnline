@@ -15,6 +15,17 @@ namespace Arrowgene.Ddon.Client
         public AreaStageList AreaStageList { get; private set; }
         public AreaList AreaList { get; private set; }
         public StageList StageList { get; private set; }
+        public JobBaseParam JobBaseParam { get; private set; }
+        public JobAdjustParam JobAdjustParam { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job01 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job02 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job03 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job04 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job05 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job06 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job07 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job08 { get; private set; }
+        public JobLevelUpTbl2 JobLevelUpTbl2Job09 { get; private set; }
         public LandListLal LandList { get; private set; }
         public StageToSpot StageToSpot { get; private set; }
         public GuiMessage FieldAreaNames { get; private set; }
@@ -49,6 +60,17 @@ namespace Arrowgene.Ddon.Client
             AreaStageList = new AreaStageList();
             AreaList = new AreaList();
             StageList = new StageList();
+            JobBaseParam = new JobBaseParam();
+            JobAdjustParam = new JobAdjustParam();
+            JobLevelUpTbl2Job01 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job02 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job03 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job04 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job05 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job06 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job07 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job08 = new JobLevelUpTbl2();
+            JobLevelUpTbl2Job09 = new JobLevelUpTbl2();
             FieldAreaList = new FieldAreaList();
             LandList = new LandListLal();
             StageToSpot = new StageToSpot();
@@ -69,6 +91,18 @@ namespace Arrowgene.Ddon.Client
             AreaStageList = GetResource<AreaStageList>("base.arc", "scr/area_stage_list");
             AreaList = GetResource<AreaList>("base.arc", "scr/area_list");
             StageList = GetResource<StageList>("base.arc", "scr/stage_list");
+            JobBaseParam = GetFile<JobBaseParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/base", "jobbase");
+            JobAdjustParam = GetFile<JobAdjustParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/baseStatus", "ajp");
+            JobLevelUpTbl2Job01 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job01", "jlt2");
+            JobLevelUpTbl2Job02 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job02", "jlt2");
+            JobLevelUpTbl2Job03 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job03", "jlt2");
+            JobLevelUpTbl2Job04 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job04", "jlt2");
+            JobLevelUpTbl2Job05 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job05", "jlt2");
+            JobLevelUpTbl2Job06 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job06", "jlt2");
+            JobLevelUpTbl2Job07 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job07", "jlt2");
+            JobLevelUpTbl2Job08 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job08", "jlt2");
+            JobLevelUpTbl2Job09 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job09", "jlt2");
+            
             FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list");
             StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot");
             FieldAreaNames = GetResource<GuiMessage>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
