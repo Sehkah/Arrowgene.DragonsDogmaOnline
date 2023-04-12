@@ -1,20 +1,20 @@
 using System.Collections.Generic;
 using Arrowgene.Buffers;
 
-namespace Arrowgene.Ddon.Client.Resource;
+namespace Arrowgene.Ddon.Client.Resource.Quest;
 
 /**
- * rStatusGainTable : rTbl2<cStatusGain> : rTbl2Base : cResource
+ * rQuestSequenceList : rTbl2<cQuestSequence> : rTbl2Base : cResource
  */
-public class StatusGainTable : ClientFile
+public class QuestSequenceList : ClientFile
 {
     public Tbl2 Table { get; }
 
-    public StatusGainTable()
+    public QuestSequenceList()
     {
         Table = new Tbl2
         {
-            Data = new List<StatusGain>()
+            Data = new List<QuestSequence>()
         };
     }
 
@@ -22,16 +22,16 @@ public class StatusGainTable : ClientFile
     {
         public uint DataVersion { get; set; }
         public uint DataNum { get; set; }
-        public List<StatusGain> Data { get; init; }
+        public List<QuestSequence> Data { get; init; }
     }
 
     /**
      * cStatusGain : MtObject
      */
-    public class StatusGain
+    public class QuestSequence
     {
-        public uint RequiredDogma { get; set; }
-        public uint UpStatusValue { get; set; }
+        public uint SeqNo { get; set; }
+        public uint QstId { get; set; }
     }
 
     protected override void Read(IBuffer buffer)
@@ -49,12 +49,12 @@ public class StatusGainTable : ClientFile
         throw new System.NotImplementedException();
     }
 
-    private static StatusGain ReadIncreaseParam2(IBuffer buffer)
+    private static QuestSequence ReadIncreaseParam2(IBuffer buffer)
     {
-        var data = new StatusGain
+        var data = new QuestSequence
         {
-            RequiredDogma = buffer.ReadUInt32(),
-            UpStatusValue = buffer.ReadUInt32(),
+            SeqNo = buffer.ReadUInt32(),
+            QstId = buffer.ReadUInt32(),
         };
         return data;
     }

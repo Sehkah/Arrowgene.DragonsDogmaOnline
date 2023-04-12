@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Arrowgene.Buffers;
 
-namespace Arrowgene.Ddon.Client.Resource;
+namespace Arrowgene.Ddon.Client.Resource.Job;
 
 /**
  * rJobLevelUpTbl2 : rTbl2<cIncreaseParam2> : rTbl2Base : cResource
