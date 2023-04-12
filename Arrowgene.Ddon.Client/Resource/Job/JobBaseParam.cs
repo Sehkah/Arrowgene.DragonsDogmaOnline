@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Arrowgene.Buffers;
 
-namespace Arrowgene.Ddon.Client.Resource;
+namespace Arrowgene.Ddon.Client.Resource.Job;
 
 /**
  * rJobBaseParam : rTbl2<nJobParam::cJobInfo> : rTbl2Base : cResource

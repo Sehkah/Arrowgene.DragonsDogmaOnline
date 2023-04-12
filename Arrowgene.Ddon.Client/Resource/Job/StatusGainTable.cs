@@ -1,20 +1,20 @@
 using System.Collections.Generic;
 using Arrowgene.Buffers;
 
-namespace Arrowgene.Ddon.Client.Resource;
+namespace Arrowgene.Ddon.Client.Resource.Job;
 
 /**
- * rAdjustParam : rTbl2<cAdjustParam> : rTbl2Base : cResource
+ * rStatusGainTable : rTbl2<cStatusGain> : rTbl2Base : cResource
  */
-public class JobAdjustParam : ClientFile
+public class StatusGainTable : ClientFile
 {
     public Tbl2 Table { get; }
 
-    public JobAdjustParam()
+    public StatusGainTable()
     {
         Table = new Tbl2
         {
-            Data = new List<AdjustParam>()
+            Data = new List<StatusGain>()
         };
     }
 
@@ -22,15 +22,16 @@ public class JobAdjustParam : ClientFile
     {
         public uint DataVersion { get; set; }
         public uint DataNum { get; set; }
-        public List<AdjustParam> Data { get; init; }
+        public List<StatusGain> Data { get; init; }
     }
 
     /**
-     * cAdjustParam : MtObject
+     * cStatusGain : MtObject
      */
-    public class AdjustParam
+    public class StatusGain
     {
-        public float Param { get; set; }
+        public uint RequiredDogma { get; set; }
+        public uint UpStatusValue { get; set; }
     }
 
     protected override void Read(IBuffer buffer)
@@ -39,7 +40,7 @@ public class JobAdjustParam : ClientFile
         Table.DataNum = buffer.ReadUInt32();
         for (var i = 0; i < Table.DataNum; i++)
         {
-            Table.Data.Add(ReadAdjustParam(buffer));
+            Table.Data.Add(ReadIncreaseParam2(buffer));
         }
     }
 
@@ -48,11 +49,12 @@ public class JobAdjustParam : ClientFile
         throw new System.NotImplementedException();
     }
 
-    private static AdjustParam ReadAdjustParam(IBuffer buffer)
+    private static StatusGain ReadIncreaseParam2(IBuffer buffer)
     {
-        var data = new AdjustParam
+        var data = new StatusGain
         {
-            Param = buffer.ReadFloat()
+            RequiredDogma = buffer.ReadUInt32(),
+            UpStatusValue = buffer.ReadUInt32(),
         };
         return data;
     }

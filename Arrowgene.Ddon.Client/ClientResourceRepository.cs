@@ -2,6 +2,8 @@
 using System.IO;
 using Arrowgene.Ddon.Client.Data;
 using Arrowgene.Ddon.Client.Resource;
+using Arrowgene.Ddon.Client.Resource.Job;
+using Arrowgene.Ddon.Client.Resource.Quest;
 using Arrowgene.Logging;
 
 namespace Arrowgene.Ddon.Client
