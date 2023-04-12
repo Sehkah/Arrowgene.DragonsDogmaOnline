@@ -16,6 +16,8 @@ namespace Arrowgene.Ddon.Client
         public AreaStageList AreaStageList { get; private set; }
         public AreaList AreaList { get; private set; }
         public StageList StageList { get; private set; }
+        public StageMap StageMap { get; private set; }
+        public EnemyGroup EnemyGroup { get; private set; }
         public EventList EventList { get; private set; }
         public JobBaseParam JobBaseParam { get; private set; }
         public JobAdjustParam JobAdjustParam { get; private set; }
@@ -69,6 +71,8 @@ namespace Arrowgene.Ddon.Client
             AreaStageList = new AreaStageList();
             AreaList = new AreaList();
             StageList = new StageList();
+            StageMap = new StageMap();
+            EnemyGroup = new EnemyGroup();
 
             EventList = new EventList();
             JobBaseParam = new JobBaseParam();
@@ -107,10 +111,12 @@ namespace Arrowgene.Ddon.Client
 
             WarpLocationList = GetResource<WarpLocationList>("ui/gui_cmn.arc", "ui/03_warp/warpLocationList", "wal");
             WarpLocationListRim = GetResource<WarpLocationList>("ui/uGUIRimWarp.arc", "ui/03_warp/lobbyWarpLocationList", "wal");
-            LandList = GetResource<LandListLal>("base.arc", "scr/land_list");
-            AreaStageList = GetResource<AreaStageList>("base.arc", "scr/area_stage_list");
-            AreaList = GetResource<AreaList>("base.arc", "scr/area_list");
-            StageList = GetResource<StageList>("base.arc", "scr/stage_list");
+            LandList = GetResource<LandListLal>("base.arc", "scr/land_list", "lai");
+            AreaStageList = GetResource<AreaStageList>("base.arc", "scr/area_stage_list", "ars");
+            AreaList = GetResource<AreaList>("base.arc", "scr/area_list", "ari");
+            StageList = GetResource<StageList>("base.arc", "scr/stage_list", "slt");
+            StageMap = GetFile<StageMap>("ui/gui_cmn.arc", "param/stage_map", "smp");
+            EnemyGroup = GetFile<EnemyGroup>("game_common.arc", "param/enemy_group", "emg");
 
             EventList = GetFile<EventList>("base.arc", "event/event_list", "evp");
             JobBaseParam = GetFile<JobBaseParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/base", "jobbase");
@@ -133,8 +139,8 @@ namespace Arrowgene.Ddon.Client
             JobTutorialQuestList = GetResource<JobTutorialQuestList>("game_common.arc", "quest/jobTutorialQuestList", "jtq");
             TutorialQuestGroup = GetResource<TutorialQuestGroup>("game_common.arc", "quest/tutorialQuestGroup", "tqg");
             
-            FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list");
-            StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot");
+            FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list", "fal");
+            StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot", "sts");
             FieldAreaNames = GetResource<GuiMessage>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
 
             // TODO Throws exception regarding indexes while searching for file inside arc file.
