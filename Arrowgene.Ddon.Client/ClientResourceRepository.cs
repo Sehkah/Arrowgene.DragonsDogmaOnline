@@ -143,77 +143,75 @@ namespace Arrowgene.Ddon.Client
             StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot", "sts");
             FieldAreaNames = GetResource<GuiMessage>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
 
-            // TODO Throws exception regarding indexes while searching for file inside arc file.
-            // foreach (StageList.Info sli in StageList.StageInfos)
-            // {
-            //     LocationData lcd = GetResource_NoLog<LocationData>(
-            //         $"stage/st{sli.StageNo:0000}/st{sli.StageNo:0000}.arc",
-            //         $"scr/st{sli.StageNo:0000}/etc/st{sli.StageNo:0000}",
-            //         "lcd"
-            //     );
-            //     if (lcd != null)
-            //     {
-            //         if (!StageLocations.ContainsKey(sli.StageNo))
-            //         {
-            //             StageLocations.Add(sli.StageNo, lcd);
-            //         }
-            //     }
-            // }
+            foreach (StageList.Info sli in StageList.StageInfos)
+            {
+                LocationData lcd = GetResource_NoLog<LocationData>(
+                    $"stage/st{sli.StageNo:0000}/st{sli.StageNo:0000}.arc",
+                    $"scr/st{sli.StageNo:0000}/etc/st{sli.StageNo:0000}",
+                    "lcd"
+                );
+                if (lcd != null)
+                {
+                    if (!StageLocations.ContainsKey(sli.StageNo))
+                    {
+                        StageLocations.Add(sli.StageNo, lcd);
+                    }
+                }
+            }
 
-            // TODO Throws exception regarding indexes while searching for file inside arc file.
-            // foreach (FieldAreaList.FieldAreaInfo fai in FieldAreaList.FieldAreaInfos)
-            // {
-            //     GuiMessage.Entry areaName = FieldAreaNames.Entries[(int)fai.GmdIdx];
-            //     FieldAreaMarkerInfo omMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_om",
-            //         "fmi"
-            //     );
-            //     if (omMarker != null)
-            //     {
-            //         AddMarker(omMarker.MarkerInfos, StageOmMarker);
-            //     }
-            //
-            //     FieldAreaMarkerInfo sceMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_sce",
-            //         "fmi"
-            //     );
-            //     if (sceMarker != null)
-            //     {
-            //         AddMarker(sceMarker.MarkerInfos, StageSceMarker);
-            //     }
-            //
-            //     FieldAreaMarkerInfo npcMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_npc",
-            //         "fmi"
-            //     );
-            //     if (npcMarker != null)
-            //     {
-            //         AddMarker(npcMarker.MarkerInfos, StageNpcMarker);
-            //     }
-            //
-            //     FieldAreaMarkerInfo ectMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
-            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_ect",
-            //         "fmi"
-            //     );
-            //     if (ectMarker != null)
-            //     {
-            //         AddMarker(ectMarker.MarkerInfos, StageEctMarker);
-            //     }
-            //
-            //     FieldAreaAdjoinList adjoin = GetResource_NoLog<FieldAreaAdjoinList>(
-            //         $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
-            //         $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_adjoin",
-            //         "faa"
-            //     );
-            //     if (adjoin != null)
-            //     {
-            //         AddAdjoin(adjoin.AdjoinInfos, StageAdJoin);
-            //     }
-            // }
+            foreach (FieldAreaList.FieldAreaInfo fai in FieldAreaList.FieldAreaInfos)
+            {
+                GuiMessage.Entry areaName = FieldAreaNames.Entries[(int)fai.GmdIdx];
+                FieldAreaMarkerInfo omMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_om",
+                    "fmi"
+                );
+                if (omMarker != null)
+                {
+                    AddMarker(omMarker.MarkerInfos, StageOmMarker);
+                }
+            
+                FieldAreaMarkerInfo sceMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_sce",
+                    "fmi"
+                );
+                if (sceMarker != null)
+                {
+                    AddMarker(sceMarker.MarkerInfos, StageSceMarker);
+                }
+            
+                FieldAreaMarkerInfo npcMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_npc",
+                    "fmi"
+                );
+                if (npcMarker != null)
+                {
+                    AddMarker(npcMarker.MarkerInfos, StageNpcMarker);
+                }
+            
+                FieldAreaMarkerInfo ectMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
+                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_ect",
+                    "fmi"
+                );
+                if (ectMarker != null)
+                {
+                    AddMarker(ectMarker.MarkerInfos, StageEctMarker);
+                }
+            
+                FieldAreaAdjoinList adjoin = GetResource_NoLog<FieldAreaAdjoinList>(
+                    $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
+                    $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_adjoin",
+                    "faa"
+                );
+                if (adjoin != null)
+                {
+                    AddAdjoin(adjoin.AdjoinInfos, StageAdJoin);
+                }
+            }
 
             foreach (StageToSpot.Entry sts in StageToSpot.Entries)
             {

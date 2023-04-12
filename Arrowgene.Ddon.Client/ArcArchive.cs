@@ -240,7 +240,13 @@ namespace Arrowgene.Ddon.Client
         /// </summary>
         public ArcFile GetFile(FileIndexSearch search)
         {
-            return GetFiles(search)[0];
+            var files = GetFiles(search);
+            if (files.Count > 0)
+            {
+                return files[0];
+            }
+            Logger.Debug($"The file search did not yield any results that match the given criteria!");
+            return null;
         }
 
         public ArcFile PutFile(string path, byte[] fileData)
