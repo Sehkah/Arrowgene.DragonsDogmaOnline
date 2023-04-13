@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Arrowgene.Buffers;
 
 namespace Arrowgene.Ddon.Client.Resource.Job
@@ -11,14 +12,17 @@ namespace Arrowgene.Ddon.Client.Resource.Job
         /**
          * MtTypedArray<cAbilityData> : MtArray
          */
-        public List<AbilityData> DataList { get; }
+        public List<AbilityData> DataList { get; set; }
+
+        public uint Version { get; set; }
+        public uint Count { get; set; }
 
         /**
          * cAbilityData : MtObject
          */
         public class AbilityData
         {
-            public List<AbilityParam> ParamArray;
+            public List<AbilityParam> ParamArray { get; set; }
         }
 
         /**
@@ -27,7 +31,14 @@ namespace Arrowgene.Ddon.Client.Resource.Job
         public class AbilityParam
         {
             public int ParamType { get; set; }
+
+            // Custom attribute for user friendly name resolution
+            public string ParamTypeName { get; set; }
+
             public int CorrectType { get; set; }
+
+            // Custom attribute for user friendly name resolution
+            public string CorrectTypeName { get; set; }
             public List<ParamData> ParamDataArray { get; set; }
         }
 
@@ -45,36 +56,71 @@ namespace Arrowgene.Ddon.Client.Resource.Job
             DataList = new List<AbilityData>();
         }
 
-        // TODO Doesn't work currently, format not fully understood.
-        //  Either caused by "ReadMtArray" misinterpreting lengths or unknown attributes.
+        // TODO Unknown additional data needs to be understood, but otherwise the basic parsing logic works
         protected override void ReadResource(IBuffer buffer)
         {
-            uint version = ReadUInt32(buffer);
+            Version = ReadUInt32(buffer);
+            var UnknownByte1 = ReadByte(buffer);
+            var UnknownByte2 = ReadByte(buffer);
+            
+            var start = ReadUInt16(buffer);
+            var end = ReadUInt32(buffer);
+            Count = end - start;
+            
+            var UnknownInt1 = ReadUInt32(buffer);
+            var UnknownByte3 = ReadByte(buffer);
             DataList.Clear();
-            DataList.AddRange(ReadMtArray(buffer, ReadAbilityData));
+
+            for (var i = 0; i <= Count; i++)
+            {
+                DataList.Add(ReadAbilityData(buffer));
+            }
         }
 
-        private AbilityData ReadAbilityData(IBuffer buffer)
+        public AbilityData ReadAbilityData(IBuffer buffer)
         {
             var abilityData = new AbilityData();
             abilityData.ParamArray = new List<AbilityParam>();
             abilityData.ParamArray.Clear();
             abilityData.ParamArray.AddRange(ReadMtArray(buffer, ReadAbilityParam));
+
+            var additionalDataAvailable = ReadByte(buffer);
+            if (additionalDataAvailable != 0)
+            {
+                var Unknown1 = ReadUInt32(buffer);
+                var Unknown2 = ReadUInt32(buffer);
+                Logger.Debug($"Additional data finished reading at position {buffer.Position}: {Unknown1}, {Unknown2}");
+            }
+
             return abilityData;
         }
 
-        private AbilityParam ReadAbilityParam(IBuffer buffer)
+        public AbilityParam ReadAbilityParam(IBuffer buffer)
         {
             var abilityParam = new AbilityParam();
+            
             abilityParam.ParamType = ReadInt32(buffer);
+            if (abilityParam.ParamType is < 0 or > 57)
+            {
+                throw new Exception($"ParamType must be within range 0-57, found {abilityParam.ParamType}!");
+            }
+            abilityParam.ParamTypeName = ((AbilityParamTypeEnum)abilityParam.ParamType).ToString();
+            
             abilityParam.CorrectType = ReadInt32(buffer);
+            if (abilityParam.CorrectType is < 0 or > 1)
+            {
+                throw new Exception($"CorrectType must be within range 0-1, found {abilityParam.CorrectType}!");
+            }
+            abilityParam.CorrectTypeName = ((AbilityParamCorrectTypeEnum)abilityParam.CorrectType).ToString();
+            
             abilityParam.ParamDataArray = new List<ParamData>();
             abilityParam.ParamDataArray.Clear();
             abilityParam.ParamDataArray.AddRange(ReadMtArray(buffer, ReadParamData));
+
             return abilityParam;
         }
 
-        private ParamData ReadParamData(IBuffer buffer)
+        public ParamData ReadParamData(IBuffer buffer)
         {
             var paramData = new ParamData();
             paramData.Lv = ReadInt32(buffer);
@@ -139,7 +185,10 @@ namespace Arrowgene.Ddon.Client.Resource.Job
         PARAM_TYPE_HEAL_HP_UP = 0x33,
         PARAM_TYPE_HEAL_STAMINA_UP = 0x34,
         PARAM_TYPE_DEF_EROSION = 0x35,
-        PARAM_TYPE_DEF_ITEM_SEAL = 0x36
+        PARAM_TYPE_DEF_ITEM_SEAL = 0x36,
+        PARAM_TYPE_UNKNOWN1 = 0x37,
+        PARAM_TYPE_UNKNOWN2 = 0x38,
+        PARAM_TYPE_UNKNOWN3 = 0x39
     }
 
     internal enum AbilityParamCorrectTypeEnum

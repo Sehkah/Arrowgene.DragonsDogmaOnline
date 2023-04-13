@@ -7,7 +7,7 @@ namespace Arrowgene.Ddon.Client
 {
     public abstract class ResourceFile : ClientFile
     {
-        private static readonly ILogger Logger = LogProvider.Logger<Logger>(typeof(ResourceFile));
+        protected readonly ILogger Logger = LogProvider.Logger<Logger>(typeof(ResourceFile));
 
         public string Magic { get; set; }
 

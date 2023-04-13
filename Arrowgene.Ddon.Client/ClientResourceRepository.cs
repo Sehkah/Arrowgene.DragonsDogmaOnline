@@ -19,6 +19,7 @@ namespace Arrowgene.Ddon.Client
         public StageMap StageMap { get; private set; }
         public EnemyGroup EnemyGroup { get; private set; }
         public EventList EventList { get; private set; }
+        public AbilityList AbilityList { get; private set; }
         public JobBaseParam JobBaseParam { get; private set; }
         public JobAdjustParam JobAdjustParam { get; private set; }
         public JobLevelUpTbl2 JobLevelUpTbl2Job01 { get; private set; }
@@ -75,6 +76,7 @@ namespace Arrowgene.Ddon.Client
             EnemyGroup = new EnemyGroup();
 
             EventList = new EventList();
+            AbilityList = new AbilityList();
             JobBaseParam = new JobBaseParam();
             JobAdjustParam = new JobAdjustParam();
             JobLevelUpTbl2Job01 = new JobLevelUpTbl2();
@@ -119,6 +121,7 @@ namespace Arrowgene.Ddon.Client
             EnemyGroup = GetFile<EnemyGroup>("game_common.arc", "param/enemy_group", "emg");
 
             EventList = GetFile<EventList>("base.arc", "event/event_list", "evp");
+            AbilityList = GetFile<AbilityList>("base.arc", "obj/pl/pl000000/param/etc/abilityinfo", "abl");
             JobBaseParam = GetFile<JobBaseParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/base", "jobbase");
             JobAdjustParam = GetFile<JobAdjustParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/baseStatus", "ajp");
             JobLevelUpTbl2Job01 = GetFile<JobLevelUpTbl2>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/job01", "jlt2");
