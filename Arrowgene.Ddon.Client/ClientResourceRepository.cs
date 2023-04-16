@@ -2,7 +2,9 @@
 using System.IO;
 using Arrowgene.Ddon.Client.Data;
 using Arrowgene.Ddon.Client.Resource;
+using Arrowgene.Ddon.Client.Resource.Item;
 using Arrowgene.Ddon.Client.Resource.Job;
+using Arrowgene.Ddon.Client.Resource.Job.AbilityList.Arrowgene.Ddon.Client.Resource.Job;
 using Arrowgene.Ddon.Client.Resource.Quest;
 using Arrowgene.Logging;
 
@@ -20,6 +22,7 @@ namespace Arrowgene.Ddon.Client
         public EnemyGroup EnemyGroup { get; private set; }
         public EventList EventList { get; private set; }
         public AbilityList AbilityList { get; private set; }
+        public ItemList ItemList { get; private set; }
         public JobBaseParam JobBaseParam { get; private set; }
         public JobAdjustParam JobAdjustParam { get; private set; }
         public JobLevelUpTbl2 JobLevelUpTbl2Job01 { get; private set; }
@@ -92,7 +95,7 @@ namespace Arrowgene.Ddon.Client
             HpGainTable = new StatusGainTable();
             LostTimerGainTable = new StatusGainTable();
             StaminaGainTable = new StatusGainTable();
-            
+
             QuestSequenceList = new QuestSequenceList();
             JobTutorialQuestList = new JobTutorialQuestList();
             TutorialQuestGroup = new TutorialQuestGroup();
@@ -120,6 +123,8 @@ namespace Arrowgene.Ddon.Client
             StageMap = GetFile<StageMap>("ui/gui_cmn.arc", "param/stage_map", "smp");
             EnemyGroup = GetFile<EnemyGroup>("game_common.arc", "param/enemy_group", "emg");
 
+            ItemList = GetResource<ItemList>("base.arc", "etc/itemlist", "ipa");
+
             EventList = GetFile<EventList>("base.arc", "event/event_list", "evp");
             AbilityList = GetFile<AbilityList>("base.arc", "obj/pl/pl000000/param/etc/abilityinfo", "abl");
             JobBaseParam = GetFile<JobBaseParam>("base.arc", "obj/pl/pl000000/param/jobleveluptbl/base", "jobbase");
@@ -141,7 +146,7 @@ namespace Arrowgene.Ddon.Client
             QuestSequenceList = GetFile<QuestSequenceList>("game_common.arc", "quest/QuestSequence", "qsq");
             JobTutorialQuestList = GetResource<JobTutorialQuestList>("game_common.arc", "quest/jobTutorialQuestList", "jtq");
             TutorialQuestGroup = GetResource<TutorialQuestGroup>("game_common.arc", "quest/tutorialQuestGroup", "tqg");
-            
+
             FieldAreaList = GetResource<FieldAreaList>("game_common.arc", "etc/FieldArea/field_area_list", "fal");
             StageToSpot = GetFile<StageToSpot>("game_common.arc", "param/stage_to_spot", "sts");
             FieldAreaNames = GetResource<GuiMessage>("game_common.arc", "ui/00_message/common/field_area_name", "gmd");
@@ -174,7 +179,7 @@ namespace Arrowgene.Ddon.Client
                 {
                     AddMarker(omMarker.MarkerInfos, StageOmMarker);
                 }
-            
+
                 FieldAreaMarkerInfo sceMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
                     $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
                     $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_sce",
@@ -184,7 +189,7 @@ namespace Arrowgene.Ddon.Client
                 {
                     AddMarker(sceMarker.MarkerInfos, StageSceMarker);
                 }
-            
+
                 FieldAreaMarkerInfo npcMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
                     $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
                     $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_npc",
@@ -194,7 +199,7 @@ namespace Arrowgene.Ddon.Client
                 {
                     AddMarker(npcMarker.MarkerInfos, StageNpcMarker);
                 }
-            
+
                 FieldAreaMarkerInfo ectMarker = GetResource_NoLog<FieldAreaMarkerInfo>(
                     $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
                     $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_marker_ect",
@@ -204,7 +209,7 @@ namespace Arrowgene.Ddon.Client
                 {
                     AddMarker(ectMarker.MarkerInfos, StageEctMarker);
                 }
-            
+
                 FieldAreaAdjoinList adjoin = GetResource_NoLog<FieldAreaAdjoinList>(
                     $"/FieldArea/FieldArea{fai.FieldAreaId:000}_marker.arc",
                     $"etc/FieldArea/FieldArea{fai.FieldAreaId:000}_adjoin",

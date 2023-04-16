@@ -1,21 +1,44 @@
+using System;
 using System.Collections.Generic;
 using Arrowgene.Buffers;
 
 namespace Arrowgene.Ddon.Client.Resource.Job;
 
 /**
- * rAdjustParam : rTbl2<cAdjustParam> : rTbl2Base : cResource
+ * rAdjustParam : rTbl2
+ * <cAdjustParam> : rTbl2Base : cResource
  */
 public class JobAdjustParam : ClientFile
 {
-    public Tbl2 Table { get; }
-
     public JobAdjustParam()
     {
         Table = new Tbl2
         {
             Data = new List<AdjustParam>()
         };
+    }
+
+    public Tbl2 Table { get; }
+
+    protected override void Read(IBuffer buffer)
+    {
+        Table.DataVersion = buffer.ReadUInt32();
+        Table.DataNum = buffer.ReadUInt32();
+        for (var i = 0; i < Table.DataNum; i++) Table.Data.Add(ReadAdjustParam(buffer));
+    }
+
+    protected override void Write(IBuffer buffer)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static AdjustParam ReadAdjustParam(IBuffer buffer)
+    {
+        var data = new AdjustParam
+        {
+            Param = buffer.ReadFloat()
+        };
+        return data;
     }
 
     public class Tbl2
@@ -31,29 +54,5 @@ public class JobAdjustParam : ClientFile
     public class AdjustParam
     {
         public float Param { get; set; }
-    }
-
-    protected override void Read(IBuffer buffer)
-    {
-        Table.DataVersion = buffer.ReadUInt32();
-        Table.DataNum = buffer.ReadUInt32();
-        for (var i = 0; i < Table.DataNum; i++)
-        {
-            Table.Data.Add(ReadAdjustParam(buffer));
-        }
-    }
-
-    protected override void Write(IBuffer buffer)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    private static AdjustParam ReadAdjustParam(IBuffer buffer)
-    {
-        var data = new AdjustParam
-        {
-            Param = buffer.ReadFloat()
-        };
-        return data;
     }
 }

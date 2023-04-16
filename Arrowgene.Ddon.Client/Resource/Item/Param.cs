@@ -2,121 +2,19 @@ namespace Arrowgene.Ddon.Client.Resource.Item;
 
 public class Param
 {
-    public struct PARAM_UNKNOWN
+    public enum CRAFT_COLOR
     {
-        ushort Param1;
-        ushort Param2;
-        ushort Param3;
-    }
-
-    public struct AP_GET
-    {
-        ushort AreaId;
-        ushort Point;
-        ushort Padding;
-    }
-
-    public struct JP_GET
-    {
-        ushort JobId;
-        ushort Point;
-        ushort Padding;
-    }
-
-    public struct ABILITY_ASSIGNMENT
-    {
-        ushort AbilityNo;
-        ushort Lv;
-        ushort Padding;
-    }
-
-    public struct SKILL_LEARNING
-    {
-        ushort JobId;
-        ushort SkillNo;
-        ushort Padding;
-    }
-
-    public struct ABILITY_LEARNING
-    {
-        ushort AbilityNo;
-        ushort Padding1;
-        ushort Padding2;
-    }
-
-    public struct PARAM
-    {
-        PARAM_UNKNOWN Unknown;
-        AP_GET Ap;
-        JP_GET Jp;
-        ABILITY_ASSIGNMENT AbilityAssignment;
-        SKILL_LEARNING SkillLearning;
-        ABILITY_LEARNING AbilityLearning;
-    }
-
-    public enum PARAM_KIND
-    {
-        KIND_NONE = 0x0,
-        HP_RECOVER = 0x1,
-        ST_RECOVER = 0x2,
-        POISON_CLEAR = 0x3,
-        SlOW_CLEAR = 0x4,
-        SLEEP_CLEAR = 0x5,
-        STAN_CLEAR = 0x6,
-        WATER_CLEAR = 0x7,
-        OIL_CLEAR = 0x8,
-        SEAL_CLEAR = 0x9,
-        SOFTBODY_CLEAR = 0xA,
-        STONE_CLEAR = 0xB,
-        GOLD_CLEAR = 0xC,
-        SPREAD_CLEAR = 0xD,
-        FREEZE_CLEAR = 0xE,
-        FALLFIRE_CLEAR = 0xF,
-        FALLICE_CLEAR = 0x10,
-        FALLTHUNDER_CLEAR = 0x11,
-        FALLSAINT_CLEAR = 0x12,
-        FALLBLIND_CLEAR = 0x13,
-        FALLATTACK_CLEAR = 0x14,
-        FALLDEF_CLEAR = 0x15,
-        FALLMAGIC_CLEAR = 0x16,
-        FALLMAGICDEF_CLEAR = 0x17,
-        ATTACK_UP = 0x18,
-        DEFENCE_UP = 0x19,
-        MAGICATTACK_UP = 0x1A,
-        MAGICDEFENSE_UP = 0x1B,
-        POWERREV_UP = 0x1C,
-        DURABILITY_UP = 0x1D,
-        SPIRIT_UP = 0x1E,
-        HP_UP = 0x1F,
-        ENDURANCE_UP = 0x20,
-        BLIND_CLEAR = 0x21,
-        REVIVAL_ONE = 0x22,
-        REVIVAL_THREE = 0x23,
-        LANTERN_ON = 0x24,
-        GOLD_CHANGE = 0x6E,
-        RIM_CHANGE = 0x6F,
-        DOGMA_CHANGE = 0x70,
-        MEDAL_POISON = 0x71,
-        MEDAL_SLEEP = 0x72,
-        MEDAL_STAN = 0x73,
-        MEDAL_FALLFIRE = 0x74,
-        MEDAL_FALLICE = 0x75,
-        MEDAL_FALLTHUNDER = 0x76,
-        MEDAL_FALLSAINT = 0x77,
-        MEDAL_FALLBLIND = 0x78,
-        MEDAL_SEAL = 0x79,
-        MEDAL_STONE = 0x7A,
-        MEDAL_GOLD = 0x7B,
-        CURRENCY = 0x7C,
-        THUNDER_CLEAR = 0x7D,
-        EROSION_CLEAR = 0x7E,
-        EROSION_GUARD_UP = 0x7F,
-        JOB_POINT = 0x80,
-        AREA_POINT = 0x81,
-        SKILL_LEARN = 0x82,
-        ABILITY_LEARN = 0x83,
-        PAWN_USE = 0x84,
-        KIND_NUM = 0x85
+        CRAFT_COLOR_START = 0x1,
+        CRAFT_COLOR_ALL = 0x1,
+        CRAFT_COLOR_DEFAULT = 0x2,
+        CRAFT_COLOR_RED = 0x3,
+        CRAFT_COLOR_GREEN = 0x4,
+        CRAFT_COLOR_BLUE = 0x5,
+        CRAFT_COLOR_YELLOW = 0x6,
+        CRAFT_COLOR_PINK = 0x7,
+        CRAFT_COLOR_BLACK = 0x8,
+        CRAFT_COLOR_END = 0x9,
+        CRAFT_COLOR_NUM = 0x8
     }
 
     public enum ELEMENT_PARAM_KIND
@@ -213,21 +111,125 @@ public class Param
         ELEMENT_PARAM_KIND_NUM = 0x59
     }
 
-    public enum CRAFT_COLOR
+    public enum PARAM_KIND
     {
-        CRAFT_COLOR_START = 0x1,
-        CRAFT_COLOR_ALL = 0x1,
-        CRAFT_COLOR_DEFAULT = 0x2,
-        CRAFT_COLOR_RED = 0x3,
-        CRAFT_COLOR_GREEN = 0x4,
-        CRAFT_COLOR_BLUE = 0x5,
-        CRAFT_COLOR_YELLOW = 0x6,
-        CRAFT_COLOR_PINK = 0x7,
-        CRAFT_COLOR_BLACK = 0x8,
-        CRAFT_COLOR_END = 0x9,
-        CRAFT_COLOR_NUM = 0x8
+        KIND_NONE = 0x0,
+        HP_RECOVER = 0x1,
+        ST_RECOVER = 0x2,
+        POISON_CLEAR = 0x3,
+        SlOW_CLEAR = 0x4,
+        SLEEP_CLEAR = 0x5,
+        STAN_CLEAR = 0x6,
+        WATER_CLEAR = 0x7,
+        OIL_CLEAR = 0x8,
+        SEAL_CLEAR = 0x9,
+        SOFTBODY_CLEAR = 0xA,
+        STONE_CLEAR = 0xB,
+        GOLD_CLEAR = 0xC,
+        SPREAD_CLEAR = 0xD,
+        FREEZE_CLEAR = 0xE,
+        FALLFIRE_CLEAR = 0xF,
+        FALLICE_CLEAR = 0x10,
+        FALLTHUNDER_CLEAR = 0x11,
+        FALLSAINT_CLEAR = 0x12,
+        FALLBLIND_CLEAR = 0x13,
+        FALLATTACK_CLEAR = 0x14,
+        FALLDEF_CLEAR = 0x15,
+        FALLMAGIC_CLEAR = 0x16,
+        FALLMAGICDEF_CLEAR = 0x17,
+        ATTACK_UP = 0x18,
+        DEFENCE_UP = 0x19,
+        MAGICATTACK_UP = 0x1A,
+        MAGICDEFENSE_UP = 0x1B,
+        POWERREV_UP = 0x1C,
+        DURABILITY_UP = 0x1D,
+        SPIRIT_UP = 0x1E,
+        HP_UP = 0x1F,
+        ENDURANCE_UP = 0x20,
+        BLIND_CLEAR = 0x21,
+        REVIVAL_ONE = 0x22,
+        REVIVAL_THREE = 0x23,
+        LANTERN_ON = 0x24,
+        GOLD_CHANGE = 0x6E,
+        RIM_CHANGE = 0x6F,
+        DOGMA_CHANGE = 0x70,
+        MEDAL_POISON = 0x71,
+        MEDAL_SLEEP = 0x72,
+        MEDAL_STAN = 0x73,
+        MEDAL_FALLFIRE = 0x74,
+        MEDAL_FALLICE = 0x75,
+        MEDAL_FALLTHUNDER = 0x76,
+        MEDAL_FALLSAINT = 0x77,
+        MEDAL_FALLBLIND = 0x78,
+        MEDAL_SEAL = 0x79,
+        MEDAL_STONE = 0x7A,
+        MEDAL_GOLD = 0x7B,
+        CURRENCY = 0x7C,
+        THUNDER_CLEAR = 0x7D,
+        EROSION_CLEAR = 0x7E,
+        EROSION_GUARD_UP = 0x7F,
+        JOB_POINT = 0x80,
+        AREA_POINT = 0x81,
+        SKILL_LEARN = 0x82,
+        ABILITY_LEARN = 0x83,
+        PAWN_USE = 0x84,
+        KIND_NUM = 0x85
     }
 
     public short KindType { get; set; }
+
     public PARAM Parameters { get; set; }
+
+    // Used when PARAM_KIND < 128 "JOB_POINT" at which point the other structs are used (Probably)
+    public struct PARAM_OTHER
+    {
+        public ushort ParamEffect1 { get; set; }
+        public ushort ParamEffect2 { get; set; }
+        public ushort ParamEffect3 { get; set; }
+    }
+
+    public struct AP_GET
+    {
+        public ushort AreaId { get; set; }
+        public ushort Point { get; set; }
+        public ushort Padding { get; set; }
+    }
+
+    public struct JP_GET
+    {
+        public ushort JobId { get; set; }
+        public ushort Point { get; set; }
+        public ushort Padding { get; set; }
+    }
+
+    public struct ABILITY_ASSIGNMENT
+    {
+        public ushort AbilityNo { get; set; }
+        public ushort Lv { get; set; }
+        public ushort Padding { get; set; }
+    }
+
+    public struct SKILL_LEARNING
+    {
+        public ushort JobId { get; set; }
+        public ushort SkillNo { get; set; }
+        public ushort Padding { get; set; }
+    }
+
+    public struct ABILITY_LEARNING
+    {
+        public ushort AbilityNo { get; set; }
+        public ushort Padding1 { get; set; }
+        public ushort Padding2 { get; set; }
+    }
+
+    public class PARAM
+    {
+        public PARAM_OTHER Other { get; set; }
+        public AP_GET Ap { get; set; }
+        public JP_GET Jp { get; set; }
+        public ABILITY_ASSIGNMENT AbilityAssignment { get; set; }
+        public SKILL_LEARNING SkillLearning { get; set; }
+        public ABILITY_LEARNING AbilityLearning { get; set; }
+    }
 }

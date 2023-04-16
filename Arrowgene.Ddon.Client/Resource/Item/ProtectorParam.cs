@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Arrowgene.Ddon.Client.Resource.Item;
 
 public class ProtectorParam
@@ -10,7 +12,7 @@ public class ProtectorParam
     public uint Durability { get; set; }
     public uint Attack { get; set; }
     public uint MagicAttack { get; set; }
-    public EquipParamS8 EquipParamS8List { get; set; }
+    public List<EquipParamS8> EquipParamS8List { get; set; }
     public ushort Weight { get; set; }
     public ushort MaxHpRev { get; set; }
     public ushort MaxStRev { get; set; }

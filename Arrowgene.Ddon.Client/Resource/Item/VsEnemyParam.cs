@@ -21,9 +21,9 @@ public class VsEnemyParam
         EM_PHYLOGENY_KIND_0E = 0xE,
         EM_PHYLOGENY_KIND_0F = 0xF,
         EM_PHYLOGENY_KIND_10 = 0x10,
-        EM_PHYLOGENY_KIND_NUM = 0x11,
+        EM_PHYLOGENY_KIND_NUM = 0x11
     }
-    
+
     public byte KindType { get; set; }
     public ushort Param { get; set; }
 }
