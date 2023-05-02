@@ -107,79 +107,11 @@ public class ItemList : ResourceFile
         ItemParamList = new List<ItemParam>((int)ArrayDataNum);
         try
         {
-            for (var i = 0; i < (int)ArrayDataNum; i++) ItemParamList.Add(ReadItemParam(buffer));
+            for (var i = 0; i < (int)ArrayDataNum; i++) ItemParamList.Add(ItemParam.ReadItemParam(buffer));
         }
         catch (Exception e)
         {
             Logger.Exception(e);
         }
-    }
-
-    private ItemParam ReadItemParam(IBuffer buffer)
-    {
-        var itemParam = new ItemParam();
-        itemParam.ItemId = buffer.ReadUInt32();
-        itemParam.NameId = buffer.ReadUInt32();
-        itemParam.Category = buffer.ReadUInt16();
-        itemParam.SubCategory = buffer.ReadUInt16();
-        if (!Enum.IsDefined(typeof(ItemParam.EQUIP_SUB_CATEGORY), (int)itemParam.SubCategory))
-            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} SubCategory {itemParam.SubCategory} is unknown!");
-        itemParam.SubCategoryName = ((ItemParam.EQUIP_SUB_CATEGORY)itemParam.SubCategory).ToString();
-
-        itemParam.Price = buffer.ReadUInt32();
-        itemParam.SortNo = buffer.ReadUInt32();
-        itemParam.NameSortNo = buffer.ReadUInt32();
-        itemParam.AttackStatus = buffer.ReadUInt32();
-        itemParam.IsUseJob = buffer.ReadUInt32();
-
-        itemParam.Flag = buffer.ReadUInt16();
-        if (itemParam.Flag > (int)ItemParam.FLAG_TYPE.FLAG_TYPE_UNKNOWN_8)
-            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} Flag can not be bigger than maximum expected {(int)ItemParam.FLAG_TYPE.FLAG_TYPE_UNKNOWN_8}!");
-        itemParam.FlagName = ((ItemParam.FLAG_TYPE)itemParam.Flag).ToString();
-
-        itemParam.IconNo = buffer.ReadUInt16();
-        itemParam.IsUseLv = buffer.ReadUInt16();
-
-        itemParam.ItemCategory = buffer.ReadByte();
-        if (!Enum.IsDefined(typeof(ITEM_CATEGORY), (int)itemParam.ItemCategory))
-            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} ItemCategory {itemParam.ItemCategory} is unknown!");
-        itemParam.ItemCategoryName = ((ITEM_CATEGORY)itemParam.ItemCategory).ToString();
-        switch ((ITEM_CATEGORY)itemParam.ItemCategory)
-        {
-            case ITEM_CATEGORY.CATEGORY_MATERIAL_ITEM:
-                itemParam.CategoryName = ((MATERIAL_CATEGORY)itemParam.Category).ToString();
-                break;
-            case ITEM_CATEGORY.CATEGORY_USE_ITEM:
-                itemParam.CategoryName = ((USE_CATEGORY)itemParam.Category).ToString();
-                break;
-            case ITEM_CATEGORY.CATEGORY_ARMS:
-                itemParam.CategoryName = ((ItemParam.EQUIP_CATEGORY)itemParam.Category).ToString();
-                break;
-            case ITEM_CATEGORY.CATEGORY_FURNITURE:
-                itemParam.CategoryName = "CATEGORY_NONE";
-                break;
-        }
-
-        itemParam.StackMax = buffer.ReadByte();
-        itemParam.Rank = buffer.ReadByte();
-        itemParam.Grade = buffer.ReadByte();
-        itemParam.IconColNo = buffer.ReadByte();
-
-        itemParam.ParamNum = buffer.ReadUInt32();
-        itemParam.ItemParamList = new List<Param>((int)itemParam.ParamNum);
-        for (var i = 0; i < itemParam.ParamNum; i++) itemParam.ItemParamList.Add(Param.ReadParam((ITEM_CATEGORY)itemParam.ItemCategory, buffer));
-
-        itemParam.VsEmNum = buffer.ReadUInt32();
-        itemParam.VsEmList = new List<VsEnemyParam>((int)itemParam.VsEmNum);
-        for (var i = 0; i < itemParam.VsEmNum; i++) itemParam.VsEmList.Add(VsEnemyParam.ReadVsEnemyParam(buffer));
-
-        if (itemParam.ItemCategory == (int)ITEM_CATEGORY.CATEGORY_ARMS)
-        {
-            if (itemParam.Category - 1 < 2) itemParam.WeaponParam = WeaponParam.ReadWeaponParam(buffer);
-
-            if (itemParam.Category < 13 && 1 < itemParam.Category - 1) itemParam.ProtectorParam = ProtectorParam.ReadProtectorParam(buffer);
-        }
-
-        return itemParam;
     }
 }

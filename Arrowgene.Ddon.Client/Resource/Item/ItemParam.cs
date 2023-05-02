@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Arrowgene.Buffers;
 
 namespace Arrowgene.Ddon.Client.Resource.Item;
 
@@ -76,7 +78,6 @@ public class ItemParam
         PHYSICAL_DEF_TYPE_NUM = 0x3
     }
 
-    public int Offset { get; set; }
     public uint ItemId { get; set; }
 
     public uint NameId { get; set; } // TODO ui\gui_cmn.arc -> ui\00_message\common\item_name.gmd
@@ -107,4 +108,72 @@ public class ItemParam
     public List<VsEnemyParam> VsEmList { get; set; }
     public WeaponParam WeaponParam { get; set; }
     public ProtectorParam ProtectorParam { get; set; }
+
+    public static ItemParam ReadItemParam(IBuffer buffer)
+    {
+        var itemParam = new ItemParam();
+        itemParam.ItemId = buffer.ReadUInt32();
+        itemParam.NameId = buffer.ReadUInt32();
+        itemParam.Category = buffer.ReadUInt16();
+        itemParam.SubCategory = buffer.ReadUInt16();
+        if (!Enum.IsDefined(typeof(EQUIP_SUB_CATEGORY), (int)itemParam.SubCategory))
+            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} SubCategory {itemParam.SubCategory} is unknown!");
+        itemParam.SubCategoryName = ((EQUIP_SUB_CATEGORY)itemParam.SubCategory).ToString();
+
+        itemParam.Price = buffer.ReadUInt32();
+        itemParam.SortNo = buffer.ReadUInt32();
+        itemParam.NameSortNo = buffer.ReadUInt32();
+        itemParam.AttackStatus = buffer.ReadUInt32();
+        itemParam.IsUseJob = buffer.ReadUInt32();
+
+        itemParam.Flag = buffer.ReadUInt16();
+        if (itemParam.Flag > (int)FLAG_TYPE.FLAG_TYPE_UNKNOWN_8)
+            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} Flag can not be bigger than maximum expected {(int)FLAG_TYPE.FLAG_TYPE_UNKNOWN_8}!");
+        itemParam.FlagName = ((FLAG_TYPE)itemParam.Flag).ToString();
+
+        itemParam.IconNo = buffer.ReadUInt16();
+        itemParam.IsUseLv = buffer.ReadUInt16();
+
+        itemParam.ItemCategory = buffer.ReadByte();
+        if (!Enum.IsDefined(typeof(ItemList.ITEM_CATEGORY), (int)itemParam.ItemCategory))
+            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} ItemCategory {itemParam.ItemCategory} is unknown!");
+        itemParam.ItemCategoryName = ((ItemList.ITEM_CATEGORY)itemParam.ItemCategory).ToString();
+        switch ((ItemList.ITEM_CATEGORY)itemParam.ItemCategory)
+        {
+            case ItemList.ITEM_CATEGORY.CATEGORY_MATERIAL_ITEM:
+                itemParam.CategoryName = ((ItemList.MATERIAL_CATEGORY)itemParam.Category).ToString();
+                break;
+            case ItemList.ITEM_CATEGORY.CATEGORY_USE_ITEM:
+                itemParam.CategoryName = ((ItemList.USE_CATEGORY)itemParam.Category).ToString();
+                break;
+            case ItemList.ITEM_CATEGORY.CATEGORY_ARMS:
+                itemParam.CategoryName = ((EQUIP_CATEGORY)itemParam.Category).ToString();
+                break;
+            case ItemList.ITEM_CATEGORY.CATEGORY_FURNITURE:
+                itemParam.CategoryName = "CATEGORY_NONE";
+                break;
+        }
+
+        itemParam.StackMax = buffer.ReadByte();
+        itemParam.Rank = buffer.ReadByte();
+        itemParam.Grade = buffer.ReadByte();
+        itemParam.IconColNo = buffer.ReadByte();
+
+        itemParam.ParamNum = buffer.ReadUInt32();
+        itemParam.ItemParamList = new List<Param>((int)itemParam.ParamNum);
+        for (var i = 0; i < itemParam.ParamNum; i++) itemParam.ItemParamList.Add(Param.ReadParam((ItemList.ITEM_CATEGORY)itemParam.ItemCategory, buffer));
+
+        itemParam.VsEmNum = buffer.ReadUInt32();
+        itemParam.VsEmList = new List<VsEnemyParam>((int)itemParam.VsEmNum);
+        for (var i = 0; i < itemParam.VsEmNum; i++) itemParam.VsEmList.Add(VsEnemyParam.ReadVsEnemyParam(buffer));
+
+        if (itemParam.ItemCategory == (int)ItemList.ITEM_CATEGORY.CATEGORY_ARMS)
+        {
+            if (itemParam.Category - 1 < 2) itemParam.WeaponParam = WeaponParam.ReadWeaponParam(buffer);
+
+            if (itemParam.Category < 13 && 1 < itemParam.Category - 1) itemParam.ProtectorParam = ProtectorParam.ReadProtectorParam(buffer);
+        }
+
+        return itemParam;
+    }
 }
