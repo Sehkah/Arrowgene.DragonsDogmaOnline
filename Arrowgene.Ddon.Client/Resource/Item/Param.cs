@@ -184,14 +184,17 @@ public class Param
 
     public object Parameters { get; set; }
 
-    public static Param ReadParam(IBuffer buffer)
+    public static Param ReadParam(ItemList.ITEM_CATEGORY itemCategory, IBuffer buffer)
     {
         var param = new Param();
         param.KindType = buffer.ReadInt16();
         if (!Enum.IsDefined(typeof(PARAM_KIND), (int)param.KindType) && !Enum.IsDefined(typeof(ELEMENT_PARAM_KIND), (int)param.KindType))
             throw new Exception($"@{buffer.Position} KindType is unknown!");
         if (Enum.IsDefined(typeof(PARAM_KIND), (int)param.KindType)) param.KindTypeName = ((PARAM_KIND)param.KindType).ToString();
-        if (Enum.IsDefined(typeof(ELEMENT_PARAM_KIND), (int)param.KindType)) param.KindTypeName = ((ELEMENT_PARAM_KIND)param.KindType).ToString();
+        if (itemCategory == ItemList.ITEM_CATEGORY.CATEGORY_ARMS)
+        {
+            if (Enum.IsDefined(typeof(ELEMENT_PARAM_KIND), (int)param.KindType)) param.KindTypeName = ((ELEMENT_PARAM_KIND)param.KindType).ToString();
+        }
 
         switch ((PARAM_KIND)param.KindType)
         {

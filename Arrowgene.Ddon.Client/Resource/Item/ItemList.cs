@@ -85,18 +85,12 @@ public class ItemList : ResourceFile
     public uint Version { get; set; }
     public List<ItemParam> ItemParamList { get; set; }
     public uint ArrayDataNum { get; set; }
-    public List<Param> ParamList { get; set; }
     public uint ArrayParamDataNum { get; set; }
-    public List<VsEnemyParam> VsParamList { get; set; }
     public uint ArrayVsParamDataNum { get; set; }
-    public List<WeaponParam> WeaponParamList { get; set; }
     public uint ArrayWeaponParamDataNum { get; set; }
-    public List<ProtectorParam> ProtectParamList { get; set; }
     public uint ArrayProtectParamDataNum { get; set; }
-    public List<EquipParamS8> EquipParamS8List { get; set; }
     public uint ArrayEquipParamS8DataNum { get; set; }
 
-    // 990174 bytes 3.4 | 
     protected override void ReadResource(IBuffer buffer)
     {
         // 68 3.4 | 58 2.3
@@ -110,7 +104,6 @@ public class ItemList : ResourceFile
         ArrayProtectParamDataNum = ReadUInt32(buffer);
         ArrayEquipParamS8DataNum = ReadUInt32(buffer);
 
-        // 104 * ItemParamNum 2.3 => rItemParam
         ItemParamList = new List<ItemParam>((int)ArrayDataNum);
         try
         {
@@ -120,29 +113,12 @@ public class ItemList : ResourceFile
         {
             Logger.Exception(e);
         }
-
-
-        // ParamList = new List<Param>((int)ArrayParamDataNum);
-        // for (var i = 0; i < ArrayParamDataNum; i++) ;
-        //
-        // VsParamList = new List<VsEnemyParam>((int)ArrayVsParamDataNum);
-        // for (var i = 0; i < ArrayVsParamDataNum; i++) ;
-        //
-        // WeaponParamList = new List<WeaponParam>((int)ArrayWeaponParamDataNum);
-        // for (var i = 0; i < ArrayWeaponParamDataNum; i++) ;
-        //
-        // ProtectParamList = new List<ProtectorParam>((int)ArrayProtectParamDataNum);
-        // for (var i = 0; i < ArrayProtectParamDataNum; i++) ;
-        //
-        // EquipParamS8List = new List<EquipParamS8>((int)ArrayEquipParamS8DataNum);
-        // for (var i = 0; i < ArrayEquipParamS8DataNum; i++) ;
     }
 
     private ItemParam ReadItemParam(IBuffer buffer)
     {
         var itemParam = new ItemParam();
         itemParam.ItemId = buffer.ReadUInt32();
-        itemParam.Offset = buffer.Position;
         itemParam.NameId = buffer.ReadUInt32();
         itemParam.Category = buffer.ReadUInt16();
         itemParam.SubCategory = buffer.ReadUInt16();
@@ -191,7 +167,7 @@ public class ItemList : ResourceFile
 
         itemParam.ParamNum = buffer.ReadUInt32();
         itemParam.ItemParamList = new List<Param>((int)itemParam.ParamNum);
-        for (var i = 0; i < itemParam.ParamNum; i++) itemParam.ItemParamList.Add(Param.ReadParam(buffer));
+        for (var i = 0; i < itemParam.ParamNum; i++) itemParam.ItemParamList.Add(Param.ReadParam((ITEM_CATEGORY)itemParam.ItemCategory, buffer));
 
         itemParam.VsEmNum = buffer.ReadUInt32();
         itemParam.VsEmList = new List<VsEnemyParam>((int)itemParam.VsEmNum);
