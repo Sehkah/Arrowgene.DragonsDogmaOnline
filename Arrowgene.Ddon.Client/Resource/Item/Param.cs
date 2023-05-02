@@ -1,3 +1,6 @@
+using System;
+using Arrowgene.Buffers;
+
 namespace Arrowgene.Ddon.Client.Resource.Item;
 
 public class Param
@@ -177,59 +180,112 @@ public class Param
     }
 
     public short KindType { get; set; }
+    public string KindTypeName { get; set; }
 
-    public PARAM Parameters { get; set; }
+    public object Parameters { get; set; }
+
+    public static Param ReadParam(IBuffer buffer)
+    {
+        var param = new Param();
+        param.KindType = buffer.ReadInt16();
+        if (!Enum.IsDefined(typeof(PARAM_KIND), (int)param.KindType) && !Enum.IsDefined(typeof(ELEMENT_PARAM_KIND), (int)param.KindType))
+            throw new Exception($"@{buffer.Position} KindType is unknown!");
+        if (Enum.IsDefined(typeof(PARAM_KIND), (int)param.KindType)) param.KindTypeName = ((PARAM_KIND)param.KindType).ToString();
+        if (Enum.IsDefined(typeof(ELEMENT_PARAM_KIND), (int)param.KindType)) param.KindTypeName = ((ELEMENT_PARAM_KIND)param.KindType).ToString();
+
+        switch ((PARAM_KIND)param.KindType)
+        {
+            case PARAM_KIND.JOB_POINT:
+                var jpGet = new JP_GET();
+                jpGet.JobId = buffer.ReadUInt16();
+                jpGet.Point = buffer.ReadUInt16();
+                jpGet.Padding = buffer.ReadUInt16();
+                param.Parameters = jpGet;
+                break;
+            case PARAM_KIND.AREA_POINT:
+                var apGet = new AP_GET();
+                apGet.AreaId = buffer.ReadUInt16();
+                apGet.Point = buffer.ReadUInt16();
+                apGet.Padding = buffer.ReadUInt16();
+                param.Parameters = apGet;
+                break;
+            case PARAM_KIND.SKILL_LEARN:
+                param.Parameters = new SKILL_LEARNING
+                {
+                    JobId = buffer.ReadUInt16(),
+                    SkillNo = buffer.ReadUInt16(),
+                    Padding = buffer.ReadUInt16()
+                };
+                break;
+            // case Param.PARAM_KIND.PAWN_USE:
+            //     param.Parameters = new Param.ABILITY_ASSIGNMENT
+            //     {
+            //         AbilityNo = buffer.ReadUInt16(),
+            //         Lv = buffer.ReadUInt16(),
+            //         Padding = buffer.ReadUInt16()
+            //     };
+            // break;
+            case PARAM_KIND.ABILITY_LEARN:
+                param.Parameters = new ABILITY_LEARNING
+                {
+                    AbilityNo = buffer.ReadUInt16(),
+                    Padding1 = buffer.ReadUInt16(),
+                    Padding2 = buffer.ReadUInt16()
+                };
+                break;
+            default:
+                param.Parameters = new PARAM_OTHER
+                {
+                    ParamEffect1 = buffer.ReadUInt16(),
+                    ParamEffect2 = buffer.ReadUInt16(),
+                    ParamEffect3 = buffer.ReadUInt16()
+                };
+                break;
+        }
+
+        return param;
+    }
 
     // Used when PARAM_KIND < 128 "JOB_POINT" at which point the other structs are used (Probably)
-    public struct PARAM_OTHER
+    public class PARAM_OTHER
     {
         public ushort ParamEffect1 { get; set; }
         public ushort ParamEffect2 { get; set; }
         public ushort ParamEffect3 { get; set; }
     }
 
-    public struct AP_GET
+    public class AP_GET
     {
         public ushort AreaId { get; set; }
         public ushort Point { get; set; }
         public ushort Padding { get; set; }
     }
 
-    public struct JP_GET
+    public class JP_GET
     {
         public ushort JobId { get; set; }
         public ushort Point { get; set; }
         public ushort Padding { get; set; }
     }
 
-    public struct ABILITY_ASSIGNMENT
+    public class ABILITY_ASSIGNMENT
     {
         public ushort AbilityNo { get; set; }
         public ushort Lv { get; set; }
         public ushort Padding { get; set; }
     }
 
-    public struct SKILL_LEARNING
+    public class SKILL_LEARNING
     {
         public ushort JobId { get; set; }
         public ushort SkillNo { get; set; }
         public ushort Padding { get; set; }
     }
 
-    public struct ABILITY_LEARNING
+    public class ABILITY_LEARNING
     {
         public ushort AbilityNo { get; set; }
         public ushort Padding1 { get; set; }
         public ushort Padding2 { get; set; }
-    }
-
-    public class PARAM
-    {
-        public PARAM_OTHER Other { get; set; }
-        public AP_GET Ap { get; set; }
-        public JP_GET Jp { get; set; }
-        public ABILITY_ASSIGNMENT AbilityAssignment { get; set; }
-        public SKILL_LEARNING SkillLearning { get; set; }
-        public ABILITY_LEARNING AbilityLearning { get; set; }
     }
 }

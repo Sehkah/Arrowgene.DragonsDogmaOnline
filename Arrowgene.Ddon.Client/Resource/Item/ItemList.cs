@@ -16,89 +16,15 @@ public class ItemList : ResourceFile
         CATEGORY_JOB_ITEM = 0x5,
         CATEGORY_FURNITURE = 0x6,
         CATEGORY_CRAFT_RECIPE = 0x7,
-        CATEGORY_NUM = 0x8
-    }
-
-    public enum KIND_TYPE
-    {
-        KIND_TYPE_NONE = 0x0,
-        KIND_TYPE_S8_START = 0x1,
-        KIND_TYPE_POISON_DEF = 0x1,
-        KIND_TYPE_SLOW_DEF = 0x2,
-        KIND_TYPE_OIL_DEF = 0x3,
-        KIND_TYPE_BLIND_DEF = 0x4,
-        KIND_TYPE_SLEEP_DEF = 0x5,
-        KIND_TYPE_WATER_DEF = 0x6,
-        KIND_TYPE_SEAL_DEF = 0x7,
-        KIND_TYPE_SOFTBODY_DEF = 0x8,
-        KIND_TYPE_STONE_DEF = 0x9,
-        KIND_TYPE_GOLD_DEF = 0xA,
-        KIND_TYPE_SPREAD_DEF = 0xB,
-        KIND_TYPE_FROZEN_DEF = 0xC,
-        KIND_TYPE_SHOCK_DEF = 0xD,
-        KIND_TYPE_SAINT_DEF = 0xE,
-        KIND_TYPE_SWOON_DEF = 0xF,
-        KIND_TYPE_CURSE_DEF = 0x10,
-        KIND_TYPE_DONW_FIRE = 0x11,
-        KIND_TYPE_DOWN_ICE = 0x12,
-        KIND_TYPE_DOWN_THUNDER = 0x13,
-        KIND_TYPE_DOWN_SAINT = 0x14,
-        KIND_TYPE_DOWN_BLIND = 0x15,
-        KIND_TYPE_DOWN_ATTACK = 0x16,
-        KIND_TYPE_DOWN_DEFENCE = 0x17,
-        KIND_TYPE_DOWN_MAGIC_AT = 0x18,
-        KIND_TYPE_DOWN_MAGIC_DEF = 0x19,
-        KIND_TYPE_EROSION_DEF = 0x1A,
-        KIND_TYPE_ITEMSEAL_DEF = 0x1B,
-        KIND_TYPE_S8_END = 0x1C,
-        KIND_TYPE_S8_NUM = 0x1B,
-        KIND_TYPE_U8_START = 0x1C,
-        KIND_TYPE_SPIRIT = 0x1C,
-        KIND_TYPE_SHIELD_STAMINA = 0x1D,
-        KIND_TYPE_TSHIELD_STORAGE = 0x1E,
-        KIND_TYPE_ARROW_NUM = 0x1F,
-        KIND_TYPE_U8_END = 0x20,
-        KIND_TYPE_U8_NUM = 0x4,
-        KIND_TYPE_S16_START = 0x20,
-        KIND_TYPE_FIRE_ELE_DEF = 0x20,
-        KIND_TYPE_ICE_ELE_DEF = 0x21,
-        KIND_TYPE_THUNDER_ELE_DEF = 0x22,
-        KIND_TYPE_SAINT_ELE_DEF = 0x23,
-        KIND_TYPE_DARK_ELE_DEF = 0x24,
-        KIND_TYPE_S16_END = 0x25,
-        KIND_TYPE_S16_NUM = 0x5,
-        KIND_TYPE_U16_START = 0x25,
-        KIND_TYPE_POISON_SAV = 0x25,
-        KIND_TYPE_SLOW_SAV = 0x26,
-        KIND_TYPE_OIL_SAV = 0x27,
-        KIND_TYPE_BLIND_SAV = 0x28,
-        KIND_TYPE_SLEEP_SAV = 0x29,
-        KIND_TYPE_WATER_SAV = 0x2A,
-        KIND_TYPE_SEAL_SAV = 0x2B,
-        KIND_TYPE_SOFTBODY_SAV = 0x2C,
-        KIND_TYPE_STONE_SAV = 0x2D,
-        KIND_TYPE_GOLD_SAV = 0x2E,
-        KIND_TYPE_SPRED_SAV = 0x2F,
-        KIND_TYPE_FREEZE_SAV = 0x30,
-        KIND_TYPE_SHOCK_SAV = 0x31,
-        KIND_TYPE_CROSS_SAV = 0x32,
-        KIND_TYPE_DOWN_FIRE_SAV = 0x33,
-        KIND_TYPE_DOWN_ICE_SAV = 0x34,
-        KIND_TYPE_DOWN_THUNDER_SAV = 0x35,
-        KIND_TYPE_DOWN_SAINT_SAV = 0x36,
-        KIND_TYPE_DOWN_BLIND_SAV = 0x37,
-        KIND_TYPE_DOWN_ATTACK_SAV = 0x38,
-        KIND_TYPE_DOWN_DEF_SAV = 0x39,
-        KIND_TYPE_DOWN_MAGIC_SAV = 0x3A,
-        KIND_TYPE_DOWN_MAGIC_DEF_SAV = 0x3B,
-        KIND_TYPE_STAN_SAV = 0x3C,
-        KIND_TYPE_U16_END = 0x3D,
-        KIND_TYPE_U16_NUM = 0x18
+        CATEGORY_SPECIAL = 0x8, // Profile Background, 
+        CATEGORY_SPECIAL_PAWN = 0x9, //  Character Edit Parts (from Pawn) 
+        CATEGORY_SPECIAL_EMOTE = 0xA, // Emote (from Pawn)
+        CATEGORY_SPECIAL_UNKNOWN = 0xB, // not in use in 2.3
+        CATEGORY_SPECIAL_CONVERSATION_DATA = 0xC // Pawn Conversation Data
     }
 
     public enum MATERIAL_CATEGORY
     {
-        MATERIAL_CATEGORY_START = 0x0,
         MATERIAL_CATEGORY_NONE = 0x0,
         MATERIAL_CATEGORY_METAL = 0x1,
         MATERIAL_CATEGORY_STONE = 0x2,
@@ -169,8 +95,6 @@ public class ItemList : ResourceFile
     public uint ArrayProtectParamDataNum { get; set; }
     public List<EquipParamS8> EquipParamS8List { get; set; }
     public uint ArrayEquipParamS8DataNum { get; set; }
-    public ushort IndexTbl { get; set; }
-    public uint MaxId { get; set; }
 
     // 990174 bytes 3.4 | 
     protected override void ReadResource(IBuffer buffer)
@@ -180,178 +104,106 @@ public class ItemList : ResourceFile
 
         // 3406 3.4 | 13459 2.3
         ArrayDataNum = ReadUInt32(buffer);
+        ArrayParamDataNum = ReadUInt32(buffer);
+        ArrayVsParamDataNum = ReadUInt32(buffer);
+        ArrayWeaponParamDataNum = ReadUInt32(buffer);
+        ArrayProtectParamDataNum = ReadUInt32(buffer);
+        ArrayEquipParamS8DataNum = ReadUInt32(buffer);
+
         // 104 * ItemParamNum 2.3 => rItemParam
         ItemParamList = new List<ItemParam>((int)ArrayDataNum);
-        for (var i = 0; i < 1; i++) ItemParamList.Add(ReadItemParam(buffer));
+        try
+        {
+            for (var i = 0; i < (int)ArrayDataNum; i++) ItemParamList.Add(ReadItemParam(buffer));
+        }
+        catch (Exception e)
+        {
+            Logger.Exception(e);
+        }
 
-        ArrayParamDataNum = ReadUInt32(buffer);
-        ParamList = new List<Param>((int)ArrayParamDataNum);
-        for (var i = 0; i < ArrayParamDataNum; i++) ;
 
-        ArrayVsParamDataNum = ReadUInt32(buffer);
-        VsParamList = new List<VsEnemyParam>((int)ArrayVsParamDataNum);
-        for (var i = 0; i < ArrayVsParamDataNum; i++) ;
-
-        ArrayWeaponParamDataNum = ReadUInt32(buffer);
-        WeaponParamList = new List<WeaponParam>((int)ArrayWeaponParamDataNum);
-        for (var i = 0; i < ArrayWeaponParamDataNum; i++) ;
-
-        ArrayProtectParamDataNum = ReadUInt32(buffer);
-        ProtectParamList = new List<ProtectorParam>((int)ArrayProtectParamDataNum);
-        for (var i = 0; i < ArrayProtectParamDataNum; i++) ;
-
-        ArrayEquipParamS8DataNum = ReadUInt32(buffer);
-        EquipParamS8List = new List<EquipParamS8>((int)ArrayEquipParamS8DataNum);
-        for (var i = 0; i < ArrayEquipParamS8DataNum; i++) ;
-
-        IndexTbl = ReadUInt16(buffer);
-        MaxId = ReadUInt32(buffer);
+        // ParamList = new List<Param>((int)ArrayParamDataNum);
+        // for (var i = 0; i < ArrayParamDataNum; i++) ;
+        //
+        // VsParamList = new List<VsEnemyParam>((int)ArrayVsParamDataNum);
+        // for (var i = 0; i < ArrayVsParamDataNum; i++) ;
+        //
+        // WeaponParamList = new List<WeaponParam>((int)ArrayWeaponParamDataNum);
+        // for (var i = 0; i < ArrayWeaponParamDataNum; i++) ;
+        //
+        // ProtectParamList = new List<ProtectorParam>((int)ArrayProtectParamDataNum);
+        // for (var i = 0; i < ArrayProtectParamDataNum; i++) ;
+        //
+        // EquipParamS8List = new List<EquipParamS8>((int)ArrayEquipParamS8DataNum);
+        // for (var i = 0; i < ArrayEquipParamS8DataNum; i++) ;
     }
 
-    private static ItemParam ReadItemParam(IBuffer buffer)
+    private ItemParam ReadItemParam(IBuffer buffer)
     {
         var itemParam = new ItemParam();
         itemParam.ItemId = buffer.ReadUInt32();
+        itemParam.Offset = buffer.Position;
         itemParam.NameId = buffer.ReadUInt32();
-        itemParam.EquipCategories = new ItemParam.EQUIP_CATEGORIES();
-        itemParam.EquipCategories.EquipCategory = buffer.ReadByte();
-        itemParam.EquipCategories.Padding = buffer.ReadByte();
-        itemParam.EquipCategories.EquipSubCategory = buffer.ReadUInt16();
+        itemParam.Category = buffer.ReadUInt16();
+        itemParam.SubCategory = buffer.ReadUInt16();
+        if (!Enum.IsDefined(typeof(ItemParam.EQUIP_SUB_CATEGORY), (int)itemParam.SubCategory))
+            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} SubCategory {itemParam.SubCategory} is unknown!");
+        itemParam.SubCategoryName = ((ItemParam.EQUIP_SUB_CATEGORY)itemParam.SubCategory).ToString();
+
         itemParam.Price = buffer.ReadUInt32();
         itemParam.SortNo = buffer.ReadUInt32();
         itemParam.NameSortNo = buffer.ReadUInt32();
         itemParam.AttackStatus = buffer.ReadUInt32();
         itemParam.IsUseJob = buffer.ReadUInt32();
-        itemParam.ParamNum = buffer.ReadUInt32();
-        itemParam.ItemParamList = new List<Param>((int)itemParam.ParamNum);
-        for (var i = 0; i < itemParam.ParamNum; i++) itemParam.ItemParamList.Add(ReadParam(buffer));
 
-        itemParam.VsEmNum = buffer.ReadUInt32();
-        itemParam.VsEmList = new List<VsEnemyParam>((int)itemParam.VsEmNum);
-        for (var i = 0; i < itemParam.VsEmNum; i++) itemParam.VsEmList.Add(ReadVsEnemyParam(buffer));
-
-        itemParam.WeaponParam = ReadWeaponParam(buffer);
-        itemParam.ProtectorParam = ReadProtectorParam(buffer);
         itemParam.Flag = buffer.ReadUInt16();
+        if (itemParam.Flag > (int)ItemParam.FLAG_TYPE.FLAG_TYPE_UNKNOWN_8)
+            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} Flag can not be bigger than maximum expected {(int)ItemParam.FLAG_TYPE.FLAG_TYPE_UNKNOWN_8}!");
+        itemParam.FlagName = ((ItemParam.FLAG_TYPE)itemParam.Flag).ToString();
+
         itemParam.IconNo = buffer.ReadUInt16();
         itemParam.IsUseLv = buffer.ReadUInt16();
-        itemParam.Category = buffer.ReadByte();
-        if (itemParam.Category > (int)ITEM_CATEGORY.CATEGORY_CRAFT_RECIPE) throw new Exception("Category can not be bigger than maximum expected 7!");
 
-        if (itemParam.Category == (int)ITEM_CATEGORY.CATEGORY_MATERIAL_ITEM)
-            itemParam.EquipCategories.EquipCategoryName = ((MATERIAL_CATEGORY)itemParam.EquipCategories.EquipCategory).ToString();
+        itemParam.ItemCategory = buffer.ReadByte();
+        if (!Enum.IsDefined(typeof(ITEM_CATEGORY), (int)itemParam.ItemCategory))
+            throw new Exception($"#{itemParam.ItemId}@{buffer.Position} ItemCategory {itemParam.ItemCategory} is unknown!");
+        itemParam.ItemCategoryName = ((ITEM_CATEGORY)itemParam.ItemCategory).ToString();
+        switch ((ITEM_CATEGORY)itemParam.ItemCategory)
+        {
+            case ITEM_CATEGORY.CATEGORY_MATERIAL_ITEM:
+                itemParam.CategoryName = ((MATERIAL_CATEGORY)itemParam.Category).ToString();
+                break;
+            case ITEM_CATEGORY.CATEGORY_USE_ITEM:
+                itemParam.CategoryName = ((USE_CATEGORY)itemParam.Category).ToString();
+                break;
+            case ITEM_CATEGORY.CATEGORY_ARMS:
+                itemParam.CategoryName = ((ItemParam.EQUIP_CATEGORY)itemParam.Category).ToString();
+                break;
+            case ITEM_CATEGORY.CATEGORY_FURNITURE:
+                itemParam.CategoryName = "CATEGORY_NONE";
+                break;
+        }
 
-
-        itemParam.CategoryName = ((ITEM_CATEGORY)itemParam.Category).ToString();
         itemParam.StackMax = buffer.ReadByte();
-        if (itemParam.Category == (int)ITEM_CATEGORY.CATEGORY_MATERIAL_ITEM && itemParam.StackMax != 99)
-            throw new Exception("Materials is not stackable up to 99, this is unexpected!");
-
         itemParam.Rank = buffer.ReadByte();
         itemParam.Grade = buffer.ReadByte();
         itemParam.IconColNo = buffer.ReadByte();
+
+        itemParam.ParamNum = buffer.ReadUInt32();
+        itemParam.ItemParamList = new List<Param>((int)itemParam.ParamNum);
+        for (var i = 0; i < itemParam.ParamNum; i++) itemParam.ItemParamList.Add(Param.ReadParam(buffer));
+
+        itemParam.VsEmNum = buffer.ReadUInt32();
+        itemParam.VsEmList = new List<VsEnemyParam>((int)itemParam.VsEmNum);
+        for (var i = 0; i < itemParam.VsEmNum; i++) itemParam.VsEmList.Add(VsEnemyParam.ReadVsEnemyParam(buffer));
+
+        if (itemParam.ItemCategory == (int)ITEM_CATEGORY.CATEGORY_ARMS)
+        {
+            if (itemParam.Category - 1 < 2) itemParam.WeaponParam = WeaponParam.ReadWeaponParam(buffer);
+
+            if (itemParam.Category < 13 && 1 < itemParam.Category - 1) itemParam.ProtectorParam = ProtectorParam.ReadProtectorParam(buffer);
+        }
+
         return itemParam;
-    }
-
-    private static ProtectorParam ReadProtectorParam(IBuffer buffer)
-    {
-        var protectorParam = new ProtectorParam();
-        protectorParam.ModelTagId = buffer.ReadUInt32();
-        protectorParam.PowerRev = buffer.ReadUInt32();
-        protectorParam.Chance = buffer.ReadUInt32();
-        protectorParam.Defense = buffer.ReadUInt32();
-        protectorParam.MagicDefense = buffer.ReadUInt32();
-        protectorParam.Durability = buffer.ReadUInt32();
-        protectorParam.Attack = buffer.ReadUInt32();
-        protectorParam.MagicAttack = buffer.ReadUInt32();
-        protectorParam.EquipParamS8List = new List<EquipParamS8>(); //TODO
-        protectorParam.Weight = buffer.ReadUInt16();
-        protectorParam.MaxHpRev = buffer.ReadUInt16();
-        protectorParam.MaxStRev = buffer.ReadUInt16();
-        protectorParam.ColorNo = buffer.ReadByte();
-        protectorParam.Sex = buffer.ReadByte();
-        protectorParam.ModelParts = buffer.ReadByte();
-        protectorParam.EleSlot = buffer.ReadByte();
-        protectorParam.EquipParamS8Num = buffer.ReadByte();
-        return protectorParam;
-    }
-
-    private static WeaponParam ReadWeaponParam(IBuffer buffer)
-    {
-        var weaponParam = new WeaponParam();
-        weaponParam.ModelTagId = buffer.ReadUInt32();
-        weaponParam.PowerRev = buffer.ReadUInt32();
-        weaponParam.Chance = buffer.ReadUInt32();
-        weaponParam.Defense = buffer.ReadUInt32();
-        weaponParam.MagicDefense = buffer.ReadUInt32();
-        weaponParam.Durability = buffer.ReadUInt32();
-        weaponParam.Attack = buffer.ReadUInt32();
-        weaponParam.MagicAttack = buffer.ReadUInt32();
-        weaponParam.ShieldStagger = buffer.ReadUInt32();
-        weaponParam.EquipParamS8List = new List<EquipParamS8>(); // TODO
-        weaponParam.Weight = buffer.ReadUInt16();
-        weaponParam.MaxHpRev = buffer.ReadUInt16();
-        weaponParam.MaxStRev = buffer.ReadUInt16();
-        weaponParam.WepCategory = buffer.ReadByte();
-        weaponParam.ColorNo = buffer.ReadByte();
-        weaponParam.Sex = buffer.ReadByte();
-        weaponParam.ModelParts = buffer.ReadByte();
-        weaponParam.EleSlot = buffer.ReadByte();
-        weaponParam.PhysicalType = buffer.ReadByte();
-        weaponParam.ElementType = buffer.ReadByte();
-        weaponParam.EquipParamS8Num = buffer.ReadByte();
-        return weaponParam;
-    }
-
-    private static VsEnemyParam ReadVsEnemyParam(IBuffer buffer)
-    {
-        var vsEnemyParam = new VsEnemyParam();
-        vsEnemyParam.KindType = buffer.ReadByte();
-        vsEnemyParam.Param = buffer.ReadUInt16();
-        return vsEnemyParam;
-    }
-
-    private static Param ReadParam(IBuffer buffer)
-    {
-        var param = new Param();
-        param.KindType = buffer.ReadInt16();
-        param.Parameters = new Param.PARAM();
-        param.Parameters.Other = new Param.PARAM_OTHER
-        {
-            ParamEffect1 = buffer.ReadUInt16(),
-            ParamEffect2 = buffer.ReadUInt16(),
-            ParamEffect3 = buffer.ReadUInt16()
-        };
-        param.Parameters.Ap = new Param.AP_GET
-        {
-            AreaId = buffer.ReadUInt16(),
-            Point = buffer.ReadUInt16(),
-            Padding = buffer.ReadUInt16()
-        };
-        param.Parameters.Jp = new Param.JP_GET
-        {
-            JobId = buffer.ReadUInt16(),
-            Point = buffer.ReadUInt16(),
-            Padding = buffer.ReadUInt16()
-        };
-        param.Parameters.AbilityAssignment = new Param.ABILITY_ASSIGNMENT
-        {
-            AbilityNo = buffer.ReadUInt16(),
-            Lv = buffer.ReadUInt16(),
-            Padding = buffer.ReadUInt16()
-        };
-        param.Parameters.SkillLearning = new Param.SKILL_LEARNING
-        {
-            JobId = buffer.ReadUInt16(),
-            SkillNo = buffer.ReadUInt16(),
-            Padding = buffer.ReadUInt16()
-        };
-        param.Parameters.AbilityLearning = new Param.ABILITY_LEARNING
-        {
-            AbilityNo = buffer.ReadUInt16(),
-            Padding1 = buffer.ReadUInt16(),
-            Padding2 = buffer.ReadUInt16()
-        };
-        return param;
     }
 }
