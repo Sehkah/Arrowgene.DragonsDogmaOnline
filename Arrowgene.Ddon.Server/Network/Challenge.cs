@@ -15,6 +15,9 @@ namespace Arrowgene.Ddon.Server.Network
         // The client RSA-encrypts 48 characters and ciphers with the first 32 (PC 03040008 0x88aecd, 0x88afbb).
         private const int MinimumSessionKeySize = 32;
 
+        /// <summary>What the PC client puts under RSA, in <see cref="ClientCreateChallengeRequest"/>'s first argument.</summary>
+        public const int ClientCommonKeySize = 48;
+
         private static readonly byte[] BlowFishKey = new byte[]
         {
             0x6D, 0x6F, 0x66, 0x75, 0x6D, 0x6F, 0x66, 0x75, 0x20, 0x63, 0x61, 0x70, 0x63, 0x6F, 0x6D, 0x28,
