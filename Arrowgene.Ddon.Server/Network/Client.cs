@@ -26,13 +26,20 @@ namespace Arrowgene.Ddon.Server.Network
          */
         private bool _challengeCompleted;
 
-        public Client(ClientHandle clientHandle, PacketFactory packetFactory)
+        public Client(ClientHandle clientHandle, PacketFactory packetFactory) : this(packetFactory, clientHandle.Identity)
+        {
+            ClientHandle = clientHandle;
+        }
+
+        /// <summary>
+        /// A client with no socket behind it. A subclass using this overrides <see cref="SendRaw"/> and <see cref="Close"/>.
+        /// </summary>
+        protected Client(PacketFactory packetFactory, string identity)
         {
             Logger = LogProvider.Logger<ServerLogger>(GetType());
-            ClientHandle = clientHandle;
             _packetFactory = packetFactory;
             _challenge = null;
-            Identity = clientHandle.Identity;
+            Identity = identity;
             _challengeCompleted = false;
             Id = IncrementingId++;
         }
@@ -75,7 +82,7 @@ namespace Arrowgene.Ddon.Server.Network
             Logger.Info(this, $"SetChallengeCompleted:{_challengeCompleted}");
         }
 
-        public void Close()
+        public virtual void Close()
         {
             ClientHandle.Disconnect();
         }
@@ -172,7 +179,7 @@ namespace Arrowgene.Ddon.Server.Network
         /// <summary>
         /// Sends raw bytes to the client, without any further processing
         /// </summary>
-        public void SendRaw(byte[] data)
+        public virtual void SendRaw(byte[] data)
         {
             ClientHandle.Send(data);
         }
