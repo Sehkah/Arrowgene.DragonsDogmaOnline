@@ -2058,6 +2058,19 @@ namespace Arrowgene.Ddon.Shared.Entity
     }
 
     /// <summary>
+    /// Ends the read of a response at its Error. Only ReadPacket catches it.
+    /// </summary>
+    internal sealed class ResponseEndsAtError : Exception
+    {
+        public ResponseEndsAtError(ServerResponse response)
+        {
+            Response = response;
+        }
+
+        public ServerResponse Response { get; }
+    }
+
+    /// <summary>
     /// PacketStructure Serializer
     /// </summary>
     public abstract class PacketEntitySerializer<T> : EntitySerializer<T>, IStructurePacketFactory
@@ -2086,7 +2099,23 @@ namespace Arrowgene.Ddon.Shared.Entity
 
         public override object ReadObj(IBuffer buffer)
         {
-            return Read(buffer);
+            return ReadPacket(buffer);
+        }
+
+        /// <summary>
+        /// Read, except that a response with an Error comes back as it stands. Every Read of a response starts with
+        /// ReadServerResponse and the client stops there too, so this is the one place that needs to know.
+        /// </summary>
+        public T ReadPacket(IBuffer buffer)
+        {
+            try
+            {
+                return Read(buffer);
+            }
+            catch (ResponseEndsAtError stop) when (stop.Response is T response)
+            {
+                return response;
+            }
         }
 
         public abstract void Write(IBuffer buffer, T obj);
@@ -2331,7 +2360,12 @@ namespace Arrowgene.Ddon.Shared.Entity
         protected void ReadServerResponse(IBuffer buffer, ServerResponse value)
         {
             value.Error = buffer.ReadUInt32(Endianness.Big);
-            value.Result = value.Error != 0 ? buffer.ReadUInt16(Endianness.Big) : buffer.ReadUInt32(Endianness.Big);
+            if (value.Error != 0)
+            {
+                throw new ResponseEndsAtError(value);
+            }
+
+            value.Result = buffer.ReadUInt32(Endianness.Big);
         }
 
         protected void WriteEntity<TEntity>(IBuffer buffer, TEntity entity) where TEntity : class, new()
@@ -2399,7 +2433,7 @@ namespace Arrowgene.Ddon.Shared.Entity
         {
             IBuffer buffer = new StreamBuffer(data);
             buffer.SetPositionStart();
-            return Read(buffer);
+            return ReadPacket(buffer);
         }
 
         protected void WriteT<T>(IBuffer buffer, T value)
