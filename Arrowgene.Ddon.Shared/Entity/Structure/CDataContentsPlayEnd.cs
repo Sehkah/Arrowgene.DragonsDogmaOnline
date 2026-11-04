@@ -26,10 +26,10 @@ namespace Arrowgene.Ddon.Shared.Entity.Structure
                 WriteUInt32(buffer, obj.Gold);
                 WriteUInt32(buffer, obj.Exp);
                 WriteUInt32(buffer, obj.Rim);
-                WriteUInt32(buffer, obj.PlayTimeMillSec);
                 WriteUInt32(buffer, obj.Unk0);
                 WriteUInt32(buffer, obj.Unk1);
                 WriteUInt32(buffer, obj.Unk2);
+                WriteUInt32(buffer, obj.PlayTimeMillSec);
                 WriteEntityList<CDataRewardItemDetail>(buffer, obj.RewardItemDetailList);
             }
 
@@ -39,10 +39,10 @@ namespace Arrowgene.Ddon.Shared.Entity.Structure
                 obj.Gold = ReadUInt32(buffer);
                 obj.Exp = ReadUInt32(buffer);
                 obj.Rim = ReadUInt32(buffer);
-                obj.PlayTimeMillSec = ReadUInt32(buffer);
                 obj.Unk0 = ReadUInt32(buffer);
                 obj.Unk1 = ReadUInt32(buffer);
                 obj.Unk2 = ReadUInt32(buffer);
+                obj.PlayTimeMillSec = ReadUInt32(buffer);
                 obj.RewardItemDetailList = ReadEntityList<CDataRewardItemDetail>(buffer);
                 return obj;
             }

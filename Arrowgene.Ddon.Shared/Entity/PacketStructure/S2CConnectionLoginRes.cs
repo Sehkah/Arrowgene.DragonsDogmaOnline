@@ -16,7 +16,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             public override void Write(IBuffer buffer, S2CConnectionLoginRes obj)
             {
                 WriteServerResponse(buffer, obj);
-                WriteUInt16(buffer, obj.IsCogLogin ? (ushort) 1 : (ushort) 0);
+                WriteBool(buffer, obj.IsCogLogin);
                 WriteMtString(buffer, obj.OneTimeToken);
             }
 
@@ -24,8 +24,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             {
                 S2CConnectionLoginRes obj = new S2CConnectionLoginRes();
                 ReadServerResponse(buffer, obj);
-                ushort isCogLogin = ReadUInt16(buffer);
-                obj.IsCogLogin = isCogLogin != 0;
+                obj.IsCogLogin = ReadBool(buffer);
                 obj.OneTimeToken = ReadMtString(buffer);
                 return obj;
             }

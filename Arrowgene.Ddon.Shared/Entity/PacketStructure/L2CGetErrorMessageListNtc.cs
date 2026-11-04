@@ -13,6 +13,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
         }
 
         public List<CDataErrorMessage> ErrorMessages { get; set; }
+        public uint RemainingNum { get; set; }
         public PacketId Id => PacketId.L2C_GET_ERROR_MESSAGE_LIST_NTC;
 
         public class Serializer : PacketEntitySerializer<L2CGetErrorMessageListNtc>
@@ -20,12 +21,14 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             public override void Write(IBuffer buffer, L2CGetErrorMessageListNtc obj)
             {
                 WriteEntityList<CDataErrorMessage>(buffer, obj.ErrorMessages);
+                WriteUInt32(buffer, obj.RemainingNum);
             }
 
             public override L2CGetErrorMessageListNtc Read(IBuffer buffer)
             {
                 L2CGetErrorMessageListNtc obj = new L2CGetErrorMessageListNtc();
                 obj.ErrorMessages = ReadEntityList<CDataErrorMessage>(buffer);
+                obj.RemainingNum = ReadUInt32(buffer);
                 return obj;
             }
         }

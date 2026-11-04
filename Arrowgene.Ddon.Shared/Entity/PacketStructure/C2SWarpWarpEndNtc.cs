@@ -7,15 +7,19 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
     {
         public PacketId Id => PacketId.C2S_WARP_WARP_END_NTC;
 
+        public uint StartPointId { get; set; } // Name inferred from captures.
+
         public class Serializer : PacketEntitySerializer<C2SWarpWarpEndNtc>
         {
             public override void Write(IBuffer buffer, C2SWarpWarpEndNtc obj)
-            {   
+            {
+                WriteUInt32(buffer, obj.StartPointId);
             }
 
             public override C2SWarpWarpEndNtc Read(IBuffer buffer)
             {
                 C2SWarpWarpEndNtc obj = new C2SWarpWarpEndNtc();
+                obj.StartPointId = ReadUInt32(buffer);
                 return obj;
             }
         }

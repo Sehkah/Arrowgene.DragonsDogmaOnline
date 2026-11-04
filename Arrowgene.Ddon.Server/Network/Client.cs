@@ -26,13 +26,26 @@ namespace Arrowgene.Ddon.Server.Network
          */
         private bool _challengeCompleted;
 
-        public Client(ClientHandle clientHandle, PacketFactory packetFactory)
+        /**
+         * The received stream could not be followed. The connection has been closed,
+         * and anything still on its way in is dropped.
+         */
+        private bool _receiveFailed;
+
+        public Client(ClientHandle clientHandle, PacketFactory packetFactory) : this(packetFactory, clientHandle.Identity)
+        {
+            ClientHandle = clientHandle;
+        }
+
+        /// <summary>
+        /// A client with no socket behind it. A subclass using this overrides <see cref="SendRaw"/> and <see cref="Close"/>.
+        /// </summary>
+        protected Client(PacketFactory packetFactory, string identity)
         {
             Logger = LogProvider.Logger<ServerLogger>(GetType());
-            ClientHandle = clientHandle;
             _packetFactory = packetFactory;
             _challenge = null;
-            Identity = clientHandle.Identity;
+            Identity = identity;
             _challengeCompleted = false;
             Id = IncrementingId++;
         }
@@ -75,30 +88,36 @@ namespace Arrowgene.Ddon.Server.Network
             Logger.Info(this, $"SetChallengeCompleted:{_challengeCompleted}");
         }
 
-        public void Close()
+        public virtual void Close()
         {
             ClientHandle.Disconnect();
         }
 
         public List<IPacket> Receive(byte[] data)
         {
+            if (_receiveFailed)
+            {
+                return [];
+            }
+
             List<IPacket> packets;
             try
             {
                 packets = _packetFactory.Read(data);
-            }
-            catch (ResponseErrorException ex)
-            {
-                // Usually thrown by the Camelia cipher complaining about misshapen packets.
-                // We shouldn't tolerate these connections and just kick them.
-                Logger.Exception(this, ex);
-                packets = [];
-                Close();
+                _receiveFailed = _packetFactory.ReadFailed;
             }
             catch (Exception ex)
             {
                 Logger.Exception(this, ex);
                 packets = [];
+                _receiveFailed = true;
+            }
+
+            if (_receiveFailed)
+            {
+                // PacketFactory could not follow the stream, as with a frame the cipher can not take or a bad source byte.
+                // We shouldn't tolerate these connections and just kick them. A client that lost its place is lost anyway.
+                Close();
             }
 
             if (packets.Count > 0)
@@ -108,7 +127,15 @@ namespace Arrowgene.Ddon.Server.Network
 
             foreach (IPacket packet in packets)
             {
-                Logger.LogPacket(this, packet);
+                try
+                {
+                    Logger.LogPacket(this, packet);
+                }
+                catch (Exception ex)
+                {
+                    // Logging a structure parses it, and a malformed packet is the handler's to answer.
+                    Logger.Exception(this, ex);
+                }
             }
 
             return packets;
@@ -136,7 +163,28 @@ namespace Arrowgene.Ddon.Server.Network
             queue.Enqueue((this, res));
         }
 
+        /// <summary>
+        /// Send the one response to a request, and throw if it could not be written, so that the handler can answer
+        /// with an error instead: a request with no response ends in a timeout and a disconnect (PC 03040008 0x8855a0).
+        /// </summary>
+        public void SendResponse<TResStruct>(TResStruct res) where TResStruct : class, IPacketStructure, new()
+        {
+            if (!TrySend(new StructurePacket<TResStruct>(res)))
+            {
+                throw new InvalidOperationException($"{typeof(TResStruct).Name} could not be written");
+            }
+        }
+
         public void Send(Packet packet)
+        {
+            TrySend(packet);
+        }
+
+        /// <summary>
+        /// Send a packet, returning false if it could not be written. A packet held back because the client is not
+        /// ready yet was dealt with as intended, so that returns true.
+        /// </summary>
+        public bool TrySend(Packet packet)
         {
             if (!_challengeCompleted
                 && packet.Id != PacketId.S2C_CERT_CLIENT_CHALLENGE_RES
@@ -148,7 +196,7 @@ namespace Arrowgene.Ddon.Server.Network
                 // to parse packets headers and process other packets.
                 Logger.Debug(this,
                     $"Tried to send Packet:\"{packet.PrintHeader()}\", while client not yet considered ready");
-                return;
+                return true;
             }
 
             byte[] data;
@@ -159,20 +207,35 @@ namespace Arrowgene.Ddon.Server.Network
             catch (Exception ex)
             {
                 Logger.Exception(this, ex);
-                return;
+                return false;
             }
 
+            if (data == null)
+            {
+                return false;
+            }
 
             LastPacketSentToClient = packet.Id;
 
             SendRaw(data);
-            Logger.LogPacket(this, packet);
+
+            try
+            {
+                Logger.LogPacket(this, packet);
+            }
+            catch (Exception ex)
+            {
+                // The packet has left: this must not read as a failed send.
+                Logger.Exception(this, ex);
+            }
+
+            return true;
         }
 
         /// <summary>
         /// Sends raw bytes to the client, without any further processing
         /// </summary>
-        public void SendRaw(byte[] data)
+        public virtual void SendRaw(byte[] data)
         {
             ClientHandle.Send(data);
         }
@@ -192,6 +255,11 @@ namespace Arrowgene.Ddon.Server.Network
                 return;
             }
 
+            if (data == null)
+            {
+                return;
+            }
+
             SendRaw(data);
         }
 
@@ -203,6 +271,7 @@ namespace Arrowgene.Ddon.Server.Network
             if (challenge.Error)
             {
                 Logger.Error(this, "Failed CertChallenge");
+                return challenge;
             }
 
             _packetFactory.SetCamelliaKey(challenge.CamelliaKey);
@@ -216,6 +285,7 @@ namespace Arrowgene.Ddon.Server.Network
             if (challenge.Error)
             {
                 Logger.Error(this, "Failed CertChallenge");
+                return challenge;
             }
 
             _packetFactory.SetCamelliaKey(challenge.CamelliaKey);

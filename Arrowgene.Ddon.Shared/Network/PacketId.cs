@@ -6,9 +6,9 @@ namespace Arrowgene.Ddon.Shared.Network
 {
     public readonly struct PacketId
     {
-        private static void AddPacketIdEntry(Dictionary<int, PacketId> packetIds, PacketId packetId)
+        private static void AddPacketIdEntry(Dictionary<(byte, ushort, byte), PacketId> packetIds, PacketId packetId)
         {
-            packetIds.Add(packetId.GetHashCode(), packetId);
+            packetIds.Add((packetId.GroupId, packetId.HandlerId, packetId.HandlerSubId), packetId);
         }
 
         private static int GetHashCode(byte groupId, ushort handlerId, byte handlerSubId)
@@ -54,10 +54,9 @@ namespace Arrowgene.Ddon.Shared.Network
 
         public static PacketId GetLoginPacketId(byte groupId, ushort handlerId, byte handlerSubId)
         {
-            int hashCode = GetHashCode(groupId, handlerId, handlerSubId);
-            if (LoginPacketIds.ContainsKey(hashCode))
+            if (LoginPacketIds.TryGetValue((groupId, handlerId, handlerSubId), out PacketId packetId))
             {
-                return LoginPacketIds[hashCode];
+                return packetId;
             }
 
             return new PacketId(groupId, handlerId, handlerSubId, "Unknown", ServerType.Login, PacketSource.Unknown);
@@ -65,10 +64,9 @@ namespace Arrowgene.Ddon.Shared.Network
 
         public static PacketId GetGamePacketId(byte groupId, ushort handlerId, byte handlerSubId)
         {
-            int hashCode = GetHashCode(groupId, handlerId, handlerSubId);
-            if (GamePacketIds.ContainsKey(hashCode))
+            if (GamePacketIds.TryGetValue((groupId, handlerId, handlerSubId), out PacketId packetId))
             {
-                return GamePacketIds[hashCode];
+                return packetId;
             }
 
             return new PacketId(groupId, handlerId, handlerSubId, "Unknown", ServerType.Game, PacketSource.Unknown);
@@ -194,9 +192,9 @@ namespace Arrowgene.Ddon.Shared.Network
 
         #region LoginPacketIdsInit
 
-        private static Dictionary<int, PacketId> InitializeLoginPacketIds()
+        private static Dictionary<(byte, ushort, byte), PacketId> InitializeLoginPacketIds()
         {
-            Dictionary<int, PacketId> packetIds = new Dictionary<int, PacketId>();
+            Dictionary<(byte, ushort, byte), PacketId> packetIds = new Dictionary<(byte, ushort, byte), PacketId>();
             AddPacketIdEntry(packetIds, C2L_PING_REQ);
             AddPacketIdEntry(packetIds, L2C_PING_RES);
             AddPacketIdEntry(packetIds, C2L_LOGIN_REQ);
@@ -2166,9 +2164,9 @@ namespace Arrowgene.Ddon.Shared.Network
 
         #region GamePacketIdsInit
 
-        private static Dictionary<int, PacketId> InitializeGamePacketIds()
+        private static Dictionary<(byte, ushort, byte), PacketId> InitializeGamePacketIds()
         {
-            Dictionary<int, PacketId> packetIds = new Dictionary<int, PacketId>();
+            Dictionary<(byte, ushort, byte), PacketId> packetIds = new Dictionary<(byte, ushort, byte), PacketId>();
             AddPacketIdEntry(packetIds, UNKNOWN);
 // Group: 0 - (CONNECTION)
             AddPacketIdEntry(packetIds, C2S_CONNECTION_PING_REQ);
@@ -4100,7 +4098,7 @@ namespace Arrowgene.Ddon.Shared.Network
         #endregion
 
         // initialize at the very end
-        private static readonly Dictionary<int, PacketId> LoginPacketIds = InitializeLoginPacketIds();
-        private static readonly Dictionary<int, PacketId> GamePacketIds = InitializeGamePacketIds();
+        private static readonly Dictionary<(byte, ushort, byte), PacketId> LoginPacketIds = InitializeLoginPacketIds();
+        private static readonly Dictionary<(byte, ushort, byte), PacketId> GamePacketIds = InitializeGamePacketIds();
     }
 }

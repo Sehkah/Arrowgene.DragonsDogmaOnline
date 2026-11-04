@@ -5,7 +5,7 @@ using Arrowgene.Logging;
 
 namespace Arrowgene.Ddon.GameServer.Handler
 {
-    public class QuestLeaderQuestProgressRequestHandler : GameStructurePacketHandler<C2SQuestLeaderQuestProgressRequestReq>
+    public class QuestLeaderQuestProgressRequestHandler : GameRequestPacketHandler<C2SQuestLeaderQuestProgressRequestReq, S2CQuestLeaderQuestProgressRequestRes>
     {
         private static readonly ServerLogger Logger = LogProvider.Logger<ServerLogger>(typeof(QuestLeaderQuestProgressRequestHandler));
         
@@ -13,23 +13,23 @@ namespace Arrowgene.Ddon.GameServer.Handler
         {
         }
 
-        public override void Handle(GameClient client, StructurePacket<C2SQuestLeaderQuestProgressRequestReq> packet)
+        public override S2CQuestLeaderQuestProgressRequestRes Handle(GameClient client, C2SQuestLeaderQuestProgressRequestReq request)
         {
             client.Party.Leader.Client.Send(new S2CQuestLeaderQuestProgressRequestNtc()
             {
                 RequestCharacterId = client.Character.CharacterId,
-                QuestScheduleId = packet.Structure.QuestScheduleId,
-                ProcessNo = packet.Structure.ProcessNo,
-                SequenceNo = packet.Structure.SequenceNo,
-                BlockNo = packet.Structure.BlockNo
+                QuestScheduleId = request.QuestScheduleId,
+                ProcessNo = request.ProcessNo,
+                SequenceNo = request.SequenceNo,
+                BlockNo = request.BlockNo
             });
 
-            client.Send(new S2CQuestLeaderQuestProgressRequestRes()
+            return new S2CQuestLeaderQuestProgressRequestRes()
             {
                 QuestProgressResult = 0, // TODO: Proper data
-                QuestScheduleId = packet.Structure.QuestScheduleId,
-                ProcessNo = packet.Structure.ProcessNo
-            });
+                QuestScheduleId = request.QuestScheduleId,
+                ProcessNo = request.ProcessNo
+            };
         }
     }
 }

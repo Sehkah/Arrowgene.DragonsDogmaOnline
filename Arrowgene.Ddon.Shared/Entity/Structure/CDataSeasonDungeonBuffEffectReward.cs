@@ -21,7 +21,7 @@ namespace Arrowgene.Ddon.Shared.Entity.Structure
                 WriteUInt32(buffer, obj.BuffEffect);
                 WriteUInt32(buffer, obj.BuffId);
                 WriteMtString(buffer, obj.BuffName);
-                WriteUInt32(buffer, obj.BuffId);
+                WriteUInt32(buffer, obj.Level);
             }
 
             public override CDataSeasonDungeonBuffEffectReward Read(IBuffer buffer)

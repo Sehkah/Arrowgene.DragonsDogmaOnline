@@ -39,7 +39,7 @@ namespace Arrowgene.Ddon.Shared.Network
         {
             if (_structure == null)
             {
-                _structure = EntitySerializer.Get<TStruct>().Read(AsBuffer());
+                _structure = EntitySerializer.Get<TStruct>().ReadPacket(AsBuffer());
             }
 
             return _structure;

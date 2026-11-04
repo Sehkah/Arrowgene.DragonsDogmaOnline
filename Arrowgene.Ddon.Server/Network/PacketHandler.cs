@@ -8,7 +8,7 @@ namespace Arrowgene.Ddon.Server.Network
         protected PacketHandler(DdonServer<TClient> server)
         {
             Server = server;
-            Database = server.Database;
+            Database = server?.Database;
         }
 
         protected DdonServer<TClient> Server { get; }

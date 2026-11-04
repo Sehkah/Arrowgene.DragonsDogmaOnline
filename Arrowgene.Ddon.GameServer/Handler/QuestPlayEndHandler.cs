@@ -39,10 +39,15 @@ namespace Arrowgene.Ddon.GameServer.Handler
 
             var ntc = new S2CQuestPlayEndNtc();
             ntc.ContentsPlayEnd.RewardItemDetailList = quest.ToCDataTimeGainQuestList(0).RewardItemDetailList;
-            ntc.ContentsPlayEnd.PlayTimeMillSec = (uint) elapsed.Milliseconds;
+            ntc.ContentsPlayEnd.PlayTimeMillSec = PlayTimeMilliseconds(elapsed);
             client.Party.SendToAll(ntc);
 
             return new S2CQuestPlayEndRes();
+        }
+
+        public static uint PlayTimeMilliseconds(TimeSpan elapsed)
+        {
+            return (uint)Math.Clamp(elapsed.TotalMilliseconds, 0, uint.MaxValue);
         }
     }
 }

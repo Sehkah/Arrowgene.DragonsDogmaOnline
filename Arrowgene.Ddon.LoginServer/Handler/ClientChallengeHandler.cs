@@ -22,8 +22,9 @@ namespace Arrowgene.Ddon.LoginServer.Handler
             Challenge.Response challenge = client.HandleChallenge(request);
             if (challenge.Error)
             {
+                // Critical: a failed challenge closes the connection.
                 Logger.Error(client, "Failed CertChallenge");
-                throw new ResponseErrorException(Shared.Model.ErrorCode.ERROR_CODE_AUTH_LOGIN_FAILED);
+                throw new ResponseErrorException(Shared.Model.ErrorCode.ERROR_CODE_AUTH_LOGIN_FAILED, true);
             }
 
             return new L2CClientChallengeRes()

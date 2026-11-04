@@ -12,6 +12,11 @@ namespace Arrowgene.Ddon.Server.Network
     public class Challenge
     {
         private const string Password = "0123456789abcdef";
+        // The client RSA-encrypts 48 characters and ciphers with the first 32 (PC 03040008 0x88aecd, 0x88afbb).
+        private const int MinimumSessionKeySize = 32;
+
+        /// <summary>What the PC client puts under RSA, in <see cref="ClientCreateChallengeRequest"/>'s first argument.</summary>
+        public const int ClientCommonKeySize = 48;
 
         private static readonly byte[] BlowFishKey = new byte[]
         {
@@ -19,7 +24,6 @@ namespace Arrowgene.Ddon.Server.Network
             0x5E, 0x2D, 0x5E, 0x29
         };
 
-        private static readonly SHA1 Sha1 = SHA1.Create();
         private static readonly BlowFish BlowFish = new BlowFish(BlowFishKey, true);
 
         private readonly RSACryptoServiceProvider _rsa;
@@ -48,7 +52,7 @@ namespace Arrowgene.Ddon.Server.Network
             buffer.WriteBytes(new byte[16 - _rsaKeyInfo.Exponent.Length]);
             buffer.WriteBytes(_rsaKeyInfo.Exponent);
             byte[] hashMaterial = buffer.GetAllBytes();
-            byte[] calculatedHash = Sha1.ComputeHash(hashMaterial);
+            byte[] calculatedHash = SHA1.HashData(hashMaterial);
             buffer.WriteBytes(calculatedHash);
             buffer.WriteBytes(new byte[12]); // unknown
             byte[] certChallenge = buffer.GetAllBytes();
@@ -67,7 +71,8 @@ namespace Arrowgene.Ddon.Server.Network
                 response.EncryptedBlowFishKeyLength = request.PasswordEncSize;
                 response.EncryptedBlowFishPassword = request.PasswordEnc;
                 response.CamelliaKey = _rsa.Decrypt(rsaEncryptedCamelliaKey, RSAEncryptionPadding.Pkcs1);
-                response.BlowFishPassword = BlowFish.Decrypt_ECB(response.EncryptedBlowFishPassword);
+                response.BlowFishPassword = DecryptPassword(request.PasswordEnc, request.PasswordEncSize);
+                response.Error = response.CamelliaKey.Length < MinimumSessionKeySize;
             }
             catch (Exception)
             {
@@ -89,9 +94,10 @@ namespace Arrowgene.Ddon.Server.Network
                 response.EncryptedBlowFishKeyLength = request.PasswordEncSize;
                 response.EncryptedBlowFishPassword = request.PasswordEnc;
                 response.CamelliaKey = _rsa.Decrypt(rsaEncryptedCamelliaKey, RSAEncryptionPadding.Pkcs1);
-                response.BlowFishPassword = BlowFish.Decrypt_ECB(response.EncryptedBlowFishPassword);
+                response.BlowFishPassword = DecryptPassword(request.PasswordEnc, request.PasswordEncSize);
+                response.Error = response.CamelliaKey.Length < MinimumSessionKeySize;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 response.Error = true;
             }
@@ -125,13 +131,21 @@ namespace Arrowgene.Ddon.Server.Network
             verifyBuffer.WriteBytes(rsaKeyInfo.Modulus);
             verifyBuffer.WriteBytes(paddedExponent);
 
-            byte[] calculatedHash = Sha1.ComputeHash(verifyBuffer.GetAllBytes());
+            byte[] calculatedHash = SHA1.HashData(verifyBuffer.GetAllBytes());
             if (!Enumerable.SequenceEqual(receivedHash, calculatedHash))
             {
                 throw new Exception("Hash verification failed. The key data is corrupted or tampered with.");
             }
 
             _rsa.ImportParameters(rsaKeyInfo);
+        }
+
+        /// <summary>
+        /// The block is 62 bytes on the wire and the size says how many of them are the password.
+        /// </summary>
+        private static byte[] DecryptPassword(byte[] block, byte size)
+        {
+            return BlowFish.Decrypt_ECB(block[..Math.Min(size, block.Length)]);
         }
 
         public C2SCertClientChallengeReq ClientCreateChallengeRequest(byte[] camelliaKey, string password = Password)

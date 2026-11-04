@@ -29,8 +29,8 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             {
                 S2CQuestGetLotQuestListRes obj = new S2CQuestGetLotQuestListRes();
                 ReadServerResponse(buffer, obj);
-                ReadUInt32(buffer);
-                ReadEntityList<CDataLotQuestList>(buffer);
+                obj.LotQuestType = ReadUInt32(buffer);
+                obj.LotQuestList = ReadEntityList<CDataLotQuestList>(buffer);
                 return obj;
             }
         }

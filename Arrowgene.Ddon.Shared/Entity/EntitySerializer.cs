@@ -34,6 +34,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             Create(new CDataAbilityParam.Serializer());
             Create(new CDataAchieveCategoryStatus.Serializer());
             Create(new CDataAchieveRewardCommon.Serializer());
+            Create(new CDataAchievementCompleteElement.Serializer());
             Create(new CDataAchievementFurnitureReward.Serializer());
             Create(new CDataAchievementIdentifier.Serializer());
             Create(new CDataAchievementProgress.Serializer());
@@ -332,6 +333,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             Create(new CDataNpcExtendedFacilityMenuItem.Serializer());
 
             Create(new CDataOcdActive.Serializer());
+            Create(new CDataOcdImmuneLv.Serializer());
             Create(new CDataOmData.Serializer());
             Create(new CDataOrbCategoryStatus.Serializer());
             Create(new CDataOrbGainExtendParam.Serializer());
@@ -495,6 +497,7 @@ namespace Arrowgene.Ddon.Shared.Entity
 
             Create(new CDataTimeGainQuestList.Serializer());
             Create(new CDataTimeGainQuestRestrictions.Serializer());
+            Create(new CDataSwitchStorage.Serializer());
             Create(new CDataTimeGainQuestUnk1Unk2.Serializer());
             Create(new CDataTimeGainQuestUnk2.Serializer());
             Create(new CDataTimeLimitedQuestOrderList.Serializer());
@@ -2055,6 +2058,19 @@ namespace Arrowgene.Ddon.Shared.Entity
     }
 
     /// <summary>
+    /// Ends the read of a response at its Error. Only ReadPacket catches it.
+    /// </summary>
+    internal sealed class ResponseEndsAtError : Exception
+    {
+        public ResponseEndsAtError(ServerResponse response)
+        {
+            Response = response;
+        }
+
+        public ServerResponse Response { get; }
+    }
+
+    /// <summary>
     /// PacketStructure Serializer
     /// </summary>
     public abstract class PacketEntitySerializer<T> : EntitySerializer<T>, IStructurePacketFactory
@@ -2083,7 +2099,23 @@ namespace Arrowgene.Ddon.Shared.Entity
 
         public override object ReadObj(IBuffer buffer)
         {
-            return Read(buffer);
+            return ReadPacket(buffer);
+        }
+
+        /// <summary>
+        /// Read, except that a response with an Error comes back as it stands. Every Read of a response starts with
+        /// ReadServerResponse and the client stops there too, so this is the one place that needs to know.
+        /// </summary>
+        public T ReadPacket(IBuffer buffer)
+        {
+            try
+            {
+                return Read(buffer);
+            }
+            catch (ResponseEndsAtError stop) when (stop.Response is T response)
+            {
+                return response;
+            }
         }
 
         public abstract void Write(IBuffer buffer, T obj);
@@ -2266,6 +2298,22 @@ namespace Arrowgene.Ddon.Shared.Entity
             return buffer.ReadBytes(length);
         }
 
+        /// <summary>
+        /// A byte array after its s32 length, where the length comes from the client: it has to fit what is left.
+        /// One that does not reads as a short packet.
+        /// </summary>
+        protected byte[] ReadLengthPrefixedByteArray(IBuffer buffer)
+        {
+            int length = ReadInt32(buffer);
+            int remaining = buffer.Size - buffer.Position;
+            if (length < 0 || length > remaining)
+            {
+                throw new System.IO.EndOfStreamException($"Length {length} with {remaining} bytes left");
+            }
+
+            return ReadByteArray(buffer, length);
+        }
+
         protected byte ReadByte(IBuffer buffer)
         {
             return buffer.ReadByte();
@@ -2273,9 +2321,7 @@ namespace Arrowgene.Ddon.Shared.Entity
 
         protected void WriteMtString(IBuffer buffer, string str)
         {
-            byte[] utf8 = Encoding.UTF8.GetBytes(str);
-            buffer.WriteUInt16((ushort)utf8.Length, Endianness.Big);
-            buffer.WriteBytes(utf8);
+            buffer.WriteMtString(str);
         }
 
         protected string ReadMtString(IBuffer buffer)
@@ -2314,7 +2360,12 @@ namespace Arrowgene.Ddon.Shared.Entity
         protected void ReadServerResponse(IBuffer buffer, ServerResponse value)
         {
             value.Error = buffer.ReadUInt32(Endianness.Big);
-            value.Result = value.Error != 0 ? buffer.ReadUInt16(Endianness.Big) : buffer.ReadUInt32(Endianness.Big);
+            if (value.Error != 0)
+            {
+                throw new ResponseEndsAtError(value);
+            }
+
+            value.Result = buffer.ReadUInt32(Endianness.Big);
         }
 
         protected void WriteEntity<TEntity>(IBuffer buffer, TEntity entity) where TEntity : class, new()
@@ -2322,8 +2373,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             EntitySerializer<TEntity> serializer = Get<TEntity>();
             if (serializer == null)
             {
-                // error
-                return;
+                throw new InvalidOperationException($"No serializer registered for {typeof(TEntity)}");
             }
 
             serializer.Write(buffer, entity);
@@ -2366,8 +2416,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             EntitySerializer<TEntity> serializer = Get<TEntity>();
             if (serializer == null)
             {
-                // error
-                return default;
+                throw new InvalidOperationException($"No serializer registered for {typeof(TEntity)}");
             }
 
             return serializer.Read(buffer);
@@ -2384,7 +2433,7 @@ namespace Arrowgene.Ddon.Shared.Entity
         {
             IBuffer buffer = new StreamBuffer(data);
             buffer.SetPositionStart();
-            return Read(buffer);
+            return ReadPacket(buffer);
         }
 
         protected void WriteT<T>(IBuffer buffer, T value)

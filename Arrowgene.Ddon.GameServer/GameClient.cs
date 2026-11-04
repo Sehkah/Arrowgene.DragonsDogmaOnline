@@ -22,6 +22,14 @@ namespace Arrowgene.Ddon.GameServer
             GameMode = GameMode.Normal;
         }
 
+        /// <summary>
+        /// A client with no socket and no server behind it. See <see cref="Client(PacketFactory, string)"/>.
+        /// </summary>
+        protected GameClient(PacketFactory packetFactory, string identity) : base(packetFactory, identity)
+        {
+            GameMode = GameMode.Normal;
+        }
+
         public void UpdateIdentity()
         {
             string newIdentity = $"[GameClient#{Id}@{ClientHandle.Identity}]";

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Arrowgene.Buffers;
 using Arrowgene.Ddon.Shared;
 using Arrowgene.Ddon.Shared.Crypto;
@@ -29,6 +30,8 @@ namespace Arrowgene.Ddon.Server.Network
         private const int PacketLengthFieldSize = 2;
         private const int PacketHeaderSize = 9;
         private const int PacketMinimumDataSize = 16;
+        private const int PacketBlockSize = 16;
+        private const int PacketMaximumDataSize = ushort.MaxValue - ushort.MaxValue % PacketBlockSize;
         private const uint CamelliaKeyLength = 32 * 8;
 
         private bool _readHeader;
@@ -43,6 +46,15 @@ namespace Arrowgene.Ddon.Server.Network
         private Memory<byte> _camelliaSubKey;
         private bool _firstPacket;
 
+        // A client's sends come from its lane and from timers. The count and the encryption scratch are all they share:
+        // each frame starts its cipher from the fixed IV, so frames need no order here and the socket stays outside.
+        private readonly Lock _writeLock = new Lock();
+
+        /// <summary>
+        /// The last <see cref="Read"/> met bytes that can not be a frame, so the stream can not be followed any further.
+        /// What it decoded before them is still returned. A server should close the connection.
+        /// </summary>
+        public bool ReadFailed { get; private set; }
 
         public PacketFactory(IPacketIdResolver packetIdResolver)
         {
@@ -129,10 +141,12 @@ namespace Arrowgene.Ddon.Server.Network
             //00 20 B8 F8 
             //data = Util.ReplaceBytes(data, new byte[] {0x00, 0x20, 0xB8, 0xF8}, new byte[] {0x00, 0x00, 0x00, 0x01});
 
-            int totalLength = data.Length + PacketLengthFieldSize + PacketHeaderSize;
-            if (totalLength < 0 || totalLength > ushort.MaxValue)
+            // With its padding, as that is what goes in the u16 length. The client has no limit below the u16 (PC 03040008 0x9d6d69).
+            int unpaddedLength = data.Length + PacketHeaderSize;
+            int frameLength = unpaddedLength + PacketBlockSize - unpaddedLength % PacketBlockSize;
+            if (frameLength > PacketMaximumDataSize)
             {
-                Logger.Error($"dataLength < 0 || dataLength > ushort.MaxValue (dataLength:{totalLength})");
+                Logger.Error($"Frame of {frameLength} over the limit of {PacketMaximumDataSize} (Packet:{packet.Id})");
                 return null;
             }
 
@@ -155,8 +169,11 @@ namespace Arrowgene.Ddon.Server.Network
             if (packet.Id.HandlerSubId == 16)
             {
                 // only increase for _NTC packets
-                packet.Count = _packetCount;
-                _packetCount++;
+                lock (_writeLock)
+                {
+                    packet.Count = _packetCount;
+                    _packetCount++;
+                }
             }
             else
             {
@@ -188,6 +205,7 @@ namespace Arrowgene.Ddon.Server.Network
         public List<IPacket> Read(byte[] data)
         {
             List<IPacket> packets = new List<IPacket>();
+            ReadFailed = false;
             if (_buffer == null)
             {
                 _buffer = Util.Buffer.Provide(data);
@@ -207,9 +225,11 @@ namespace Arrowgene.Ddon.Server.Network
                 if (!_readHeader && _buffer.Size - _buffer.Position >= PacketLengthFieldSize)
                 {
                     _dataSize = _buffer.ReadUInt16(Endianness.Big);
-                    if (_dataSize < PacketMinimumDataSize)
+                    if (_dataSize < PacketMinimumDataSize || _dataSize % PacketBlockSize != 0)
                     {
-                        Logger.Error($"DataSize:{_dataSize} < PacketMinimumDataSize:{PacketMinimumDataSize}");
+                        // The cipher only takes whole blocks, and no client sends a frame that is not one.
+                        Logger.Error($"DataSize:{_dataSize} is under {PacketMinimumDataSize} or not a multiple of {PacketBlockSize}");
+                        ReadFailed = true;
                         Reset();
                         return packets;
                     }
@@ -270,7 +290,8 @@ namespace Arrowgene.Ddon.Server.Network
                         if (packetSource != PacketSource.Server
                             && packetSource != PacketSource.Client)
                         {
-                            Logger.Error($"Invalid Server Type");
+                            Logger.Error($"Invalid packet source:{packetSourceByte}");
+                            ReadFailed = true;
                             Reset();
                             return packets;
                         }
@@ -294,19 +315,12 @@ namespace Arrowgene.Ddon.Server.Network
                     _readHeader = false;
                     read = _buffer.Position != _buffer.Size;
                 }
-                else
-                {
-                    if (_dataSize > PacketMinimumDataSize)
-                    {
-                        // If datasize was evaluated and is a valid size, assume that the data might be split across multiple TCP packets
-                        // reset position to before header was read and hope data arrives with the next packet
-                        _readHeader = false;
-                        _buffer.Position -= 2;
-                    }
-                }
+
+                // Otherwise the data is split across TCP packets, possibly inside the length prefix: _readHeader, _dataSize
+                // and the position below hold the place until the rest arrives.
             }
 
-            if (_buffer.Position == _buffer.Size)
+            if (_buffer.Position == _buffer.Size && !_readHeader)
             {
                 Reset();
             }
@@ -320,15 +334,18 @@ namespace Arrowgene.Ddon.Server.Network
 
         public byte[] Encrypt(byte[] data)
         {
-            Camellia.Encrypt(
-                data,
-                out Span<byte> encrypted,
-                CamelliaKeyLength,
-                _camelliaSubKey.Span,
-                Util.Copy(CamelliaIv),
-                _t8Encrypt.Span
-            );
-            return encrypted.ToArray();
+            lock (_writeLock)
+            {
+                Camellia.Encrypt(
+                    data,
+                    out Span<byte> encrypted,
+                    CamelliaKeyLength,
+                    _camelliaSubKey.Span,
+                    Util.Copy(CamelliaIv),
+                    _t8Encrypt.Span
+                );
+                return encrypted.ToArray();
+            }
         }
 
         public byte[] Decrypt(byte[] encrypted)

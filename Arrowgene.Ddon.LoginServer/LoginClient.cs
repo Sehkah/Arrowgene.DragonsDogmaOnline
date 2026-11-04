@@ -11,6 +11,13 @@ namespace Arrowgene.Ddon.LoginServer
             UpdateIdentity();
         }
 
+        /// <summary>
+        /// A client with no socket behind it. See <see cref="Client(PacketFactory, string)"/>.
+        /// </summary>
+        protected LoginClient(PacketFactory packetFactory, string identity) : base(packetFactory, identity)
+        {
+        }
+
         public void UpdateIdentity()
         {
             string newIdentity = $"[LoginClient#{Id}@{ClientHandle.Identity}]";

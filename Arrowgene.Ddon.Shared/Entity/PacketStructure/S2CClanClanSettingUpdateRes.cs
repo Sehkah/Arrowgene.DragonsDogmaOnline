@@ -11,21 +11,17 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
         {
         }
 
-        public bool IsMemberNotice;
-
         public class Serializer : PacketEntitySerializer<S2CClanClanSettingUpdateRes>
         {
             public override void Write(IBuffer buffer, S2CClanClanSettingUpdateRes obj)
             {
                 WriteServerResponse(buffer, obj);
-                WriteBool(buffer, obj.IsMemberNotice);
             }
 
             public override S2CClanClanSettingUpdateRes Read(IBuffer buffer)
             {
                 S2CClanClanSettingUpdateRes obj = new S2CClanClanSettingUpdateRes();
                 ReadServerResponse(buffer, obj);
-                obj.IsMemberNotice = ReadBool(buffer);
                 return obj;
             }
         }

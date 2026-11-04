@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Unicode;
 using Arrowgene.Buffers;
 
 namespace Arrowgene.Ddon.Shared
@@ -28,11 +29,30 @@ namespace Arrowgene.Ddon.Shared
             return entities;
         }
         
+        /// <summary>
+        /// The most bytes an MtString may have. PC 0x8bc5b0 fails the read above 0x800,
+        /// so the cap stays one below that.
+        /// </summary>
+        public const int MtStringMaxBytes = 0x7FF;
+
         public static void WriteMtString(this IBuffer buffer, string str)
         {
+            if (str == null)
+            {
+                buffer.WriteUInt16(0, Endianness.Big);
+                return;
+            }
+
             byte[] utf8 = Encoding.UTF8.GetBytes(str);
-            buffer.WriteUInt16((ushort) utf8.Length, Endianness.Big);
-            buffer.WriteBytes(utf8);
+            int length = utf8.Length;
+            if (length > MtStringMaxBytes)
+            {
+                // Stops before a character that does not fit whole.
+                Utf8.FromUtf16(str, utf8.AsSpan(0, MtStringMaxBytes), out _, out length);
+            }
+
+            buffer.WriteUInt16((ushort) length, Endianness.Big);
+            buffer.WriteBytes(utf8, 0, length);
         }
 
         public static string ReadMtString(this IBuffer buffer)

@@ -27,8 +27,10 @@ namespace Arrowgene.Ddon.LoginServer.Handler
         {
             L2CGetErrorMessageListNtc ntc = new L2CGetErrorMessageListNtc();
             uint totalLength = 0;
+            ErrorCode[] codes = Enum.GetValues<ErrorCode>();
+            uint remaining = (uint)codes.Length;
 
-            foreach (ErrorCode code in Enum.GetValues(typeof(ErrorCode)))
+            foreach (ErrorCode code in codes)
             {
                 // An MtString of length N takes up N+2 bytes.
                 // Each CDataErrorMessage is thus at least N+2+2+4+4 bytes.
@@ -48,9 +50,11 @@ namespace Arrowgene.Ddon.LoginServer.Handler
                     MessageId = 1,
                     Message = message
                 });
+                remaining--;
 
                 if (totalLength >= PACKET_SIZE_LIMIT)
                 {
+                    ntc.RemainingNum = remaining;
                     client.Send(ntc);
                     ntc = new();
                     totalLength = 0;

@@ -25,8 +25,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             public override C2SPartySendBinaryMsgAllNtc Read(IBuffer buffer)
             {
                 C2SPartySendBinaryMsgAllNtc obj = new C2SPartySendBinaryMsgAllNtc();
-                int dataLength = ReadInt32(buffer);
-                obj.Data = ReadByteArray(buffer, dataLength);
+                obj.Data = ReadLengthPrefixedByteArray(buffer);
                 return obj;
             }
         }

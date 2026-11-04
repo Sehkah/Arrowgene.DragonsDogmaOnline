@@ -27,8 +27,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 C2SLobbyLobbyDataMsgReq obj = new C2SLobbyLobbyDataMsgReq();
                 obj.Type = (RpcMsgType) ReadByte(buffer);
                 obj.CharacterId = ReadUInt32(buffer);
-                int rpcPacketLength = ReadInt32(buffer);
-                obj.RpcPacket = ReadByteArray(buffer, rpcPacketLength);
+                obj.RpcPacket = ReadLengthPrefixedByteArray(buffer);
                 return obj;
             }
         }

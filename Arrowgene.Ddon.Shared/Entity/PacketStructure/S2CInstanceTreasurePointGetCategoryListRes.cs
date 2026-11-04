@@ -30,7 +30,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             {
                 S2CInstanceTreasurePointGetCategoryListRes obj = new S2CInstanceTreasurePointGetCategoryListRes();
                 ReadServerResponse(buffer, obj);
-                ReadEntityList<CDataTreasurePointCategory>(buffer);
+                obj.TreasurePointCategories = ReadEntityList<CDataTreasurePointCategory>(buffer);
                 return obj;
             }
         }

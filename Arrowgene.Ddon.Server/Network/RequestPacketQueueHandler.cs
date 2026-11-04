@@ -26,10 +26,25 @@ namespace Arrowgene.Ddon.Server.Network
         public sealed override void Handle(TClient client, StructurePacket<TReqStruct> request)
         {
             TResStruct response;
+            bool responded = false;
             try
             {
                 PacketQueue queue = Handle(client, request.Structure);
-                queue.Send();
+                PacketId responseId = new TResStruct().Id;
+                bool lost = false;
+                while (queue.Count > 0)
+                {
+                    (Client target, Packet packet) = queue.Dequeue();
+                    bool isResponse = target == client && packet.Id == responseId;
+                    bool sent = target.TrySend(packet);
+                    responded |= isResponse && sent;
+                    lost |= isResponse && !sent;
+                }
+
+                if (lost)
+                {
+                    throw new InvalidOperationException($"{typeof(TResStruct).Name} could not be written");
+                }
             }
             catch (SQLiteException ex)
             {
@@ -57,9 +72,14 @@ namespace Arrowgene.Ddon.Server.Network
                 client.Close();
                 throw;
             }
-            catch (NotImplementedException ex)
+            catch (NotImplementedException)
             {
-                throw new ResponseErrorException(ErrorCode.ERROR_CODE_NOT_IMPLEMENTED, ex.Message, ex);
+                response = new TResStruct
+                {
+                    Error = (uint)ErrorCode.ERROR_CODE_NOT_IMPLEMENTED
+                };
+                client.Send(response);
+                throw;
             }
             catch (ResponseErrorException ex)
             {
@@ -84,9 +104,13 @@ namespace Arrowgene.Ddon.Server.Network
             }
             catch (Exception)
             {
-                response = new TResStruct();
-                response.Error = (uint)ErrorCode.ERROR_CODE_FAIL;
-                client.Send(response);
+                if (!responded)
+                {
+                    response = new TResStruct();
+                    response.Error = (uint)ErrorCode.ERROR_CODE_FAIL;
+                    client.Send(response);
+                }
+
                 throw;
             }
         }

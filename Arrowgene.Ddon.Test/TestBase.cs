@@ -7,13 +7,27 @@ namespace Arrowgene.Ddon.Test
     public class TestBase : IDisposable
     {
         private ITestOutputHelper _output;
+#if (DEBUG)
+        private EventHandler<LogWriteEventArgs> _onLogWrite;
+#endif
 
         public TestBase(ITestOutputHelper output)
         {
             _output = output;
 #if (DEBUG)
             LogProvider.Start();
-            LogProvider.OnLogWrite += (sender, args) => { _output.WriteLine(args.Log.ToString()); };
+            _onLogWrite = (sender, args) =>
+            {
+                try
+                {
+                    _output.WriteLine(args.Log.ToString());
+                }
+                catch (InvalidOperationException)
+                {
+                    // Logged while no test of this class runs: a finalizer, or another test's thread.
+                }
+            };
+            LogProvider.OnLogWrite += _onLogWrite;
 #endif
         }
 
@@ -25,6 +39,7 @@ namespace Arrowgene.Ddon.Test
         public void Dispose()
         {
 #if (DEBUG)
+            LogProvider.OnLogWrite -= _onLogWrite;
             LogProvider.Stop();
 #endif
         }

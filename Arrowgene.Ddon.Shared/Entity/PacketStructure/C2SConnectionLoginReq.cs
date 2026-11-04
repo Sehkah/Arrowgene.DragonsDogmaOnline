@@ -12,12 +12,15 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
         
         public PlatformType PlatformType { get; set; }
 
+        public uint ClientVersion { get; set; }
+
         public class Serializer : PacketEntitySerializer<C2SConnectionLoginReq>
         {
             public override void Write(IBuffer buffer, C2SConnectionLoginReq obj)
             {
                 WriteMtString(buffer, obj.SessionKey);
                 WriteByte(buffer, (byte)obj.PlatformType);
+                WriteUInt32(buffer, obj.ClientVersion);
             }
 
             public override C2SConnectionLoginReq Read(IBuffer buffer)
@@ -25,6 +28,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 C2SConnectionLoginReq obj = new C2SConnectionLoginReq();
                 obj.SessionKey = ReadMtString(buffer);
                 obj.PlatformType = (PlatformType)ReadByte(buffer);
+                obj.ClientVersion = ReadUInt32(buffer);
                 return obj;
             }
         }
