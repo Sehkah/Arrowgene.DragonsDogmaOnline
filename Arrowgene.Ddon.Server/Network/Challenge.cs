@@ -19,7 +19,6 @@ namespace Arrowgene.Ddon.Server.Network
             0x5E, 0x2D, 0x5E, 0x29
         };
 
-        private static readonly SHA1 Sha1 = SHA1.Create();
         private static readonly BlowFish BlowFish = new BlowFish(BlowFishKey, true);
 
         private readonly RSACryptoServiceProvider _rsa;
@@ -48,7 +47,7 @@ namespace Arrowgene.Ddon.Server.Network
             buffer.WriteBytes(new byte[16 - _rsaKeyInfo.Exponent.Length]);
             buffer.WriteBytes(_rsaKeyInfo.Exponent);
             byte[] hashMaterial = buffer.GetAllBytes();
-            byte[] calculatedHash = Sha1.ComputeHash(hashMaterial);
+            byte[] calculatedHash = SHA1.HashData(hashMaterial);
             buffer.WriteBytes(calculatedHash);
             buffer.WriteBytes(new byte[12]); // unknown
             byte[] certChallenge = buffer.GetAllBytes();
@@ -125,7 +124,7 @@ namespace Arrowgene.Ddon.Server.Network
             verifyBuffer.WriteBytes(rsaKeyInfo.Modulus);
             verifyBuffer.WriteBytes(paddedExponent);
 
-            byte[] calculatedHash = Sha1.ComputeHash(verifyBuffer.GetAllBytes());
+            byte[] calculatedHash = SHA1.HashData(verifyBuffer.GetAllBytes());
             if (!Enumerable.SequenceEqual(receivedHash, calculatedHash))
             {
                 throw new Exception("Hash verification failed. The key data is corrupted or tampered with.");
