@@ -16,8 +16,10 @@ namespace Arrowgene.Ddon.Test.Shared.Entity.PacketStructure
 
             byte[] written = EntitySerializer.Get<S2CQuestPlayEndNtc>().Write(served);
 
+            // A u32 of the notice, then the structure: the 7th u32 of the structure is at 4 + 6 * 4.
             byte[] captured = CapturedFrame.Body("11_45_16.bin");
-            Assert.Equal(captured[24..28], written[24..28]);
+            Assert.Equal(new byte[] { 0, 0x0F, 0xF3, 0xD5 }, captured[28..32]);
+            Assert.Equal(captured[28..32], written[28..32]);
         }
 
         [Fact]
