@@ -332,6 +332,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             Create(new CDataNpcExtendedFacilityMenuItem.Serializer());
 
             Create(new CDataOcdActive.Serializer());
+            Create(new CDataOcdImmuneLv.Serializer());
             Create(new CDataOmData.Serializer());
             Create(new CDataOrbCategoryStatus.Serializer());
             Create(new CDataOrbGainExtendParam.Serializer());
@@ -495,6 +496,7 @@ namespace Arrowgene.Ddon.Shared.Entity
 
             Create(new CDataTimeGainQuestList.Serializer());
             Create(new CDataTimeGainQuestRestrictions.Serializer());
+            Create(new CDataSwitchStorage.Serializer());
             Create(new CDataTimeGainQuestUnk1Unk2.Serializer());
             Create(new CDataTimeGainQuestUnk2.Serializer());
             Create(new CDataTimeLimitedQuestOrderList.Serializer());
@@ -2322,8 +2324,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             EntitySerializer<TEntity> serializer = Get<TEntity>();
             if (serializer == null)
             {
-                // error
-                return;
+                throw new InvalidOperationException($"No serializer registered for {typeof(TEntity)}");
             }
 
             serializer.Write(buffer, entity);
@@ -2366,8 +2367,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             EntitySerializer<TEntity> serializer = Get<TEntity>();
             if (serializer == null)
             {
-                // error
-                return default;
+                throw new InvalidOperationException($"No serializer registered for {typeof(TEntity)}");
             }
 
             return serializer.Read(buffer);
