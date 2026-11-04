@@ -271,6 +271,7 @@ namespace Arrowgene.Ddon.Server.Network
             if (challenge.Error)
             {
                 Logger.Error(this, "Failed CertChallenge");
+                return challenge;
             }
 
             _packetFactory.SetCamelliaKey(challenge.CamelliaKey);
@@ -284,6 +285,7 @@ namespace Arrowgene.Ddon.Server.Network
             if (challenge.Error)
             {
                 Logger.Error(this, "Failed CertChallenge");
+                return challenge;
             }
 
             _packetFactory.SetCamelliaKey(challenge.CamelliaKey);

@@ -12,6 +12,8 @@ namespace Arrowgene.Ddon.Server.Network
     public class Challenge
     {
         private const string Password = "0123456789abcdef";
+        // The client RSA-encrypts 48 characters and ciphers with the first 32 (PC 03040008 0x88aecd, 0x88afbb).
+        private const int MinimumSessionKeySize = 32;
 
         private static readonly byte[] BlowFishKey = new byte[]
         {
@@ -67,6 +69,7 @@ namespace Arrowgene.Ddon.Server.Network
                 response.EncryptedBlowFishPassword = request.PasswordEnc;
                 response.CamelliaKey = _rsa.Decrypt(rsaEncryptedCamelliaKey, RSAEncryptionPadding.Pkcs1);
                 response.BlowFishPassword = BlowFish.Decrypt_ECB(response.EncryptedBlowFishPassword);
+                response.Error = response.CamelliaKey.Length < MinimumSessionKeySize;
             }
             catch (Exception)
             {
@@ -89,8 +92,9 @@ namespace Arrowgene.Ddon.Server.Network
                 response.EncryptedBlowFishPassword = request.PasswordEnc;
                 response.CamelliaKey = _rsa.Decrypt(rsaEncryptedCamelliaKey, RSAEncryptionPadding.Pkcs1);
                 response.BlowFishPassword = BlowFish.Decrypt_ECB(response.EncryptedBlowFishPassword);
+                response.Error = response.CamelliaKey.Length < MinimumSessionKeySize;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 response.Error = true;
             }

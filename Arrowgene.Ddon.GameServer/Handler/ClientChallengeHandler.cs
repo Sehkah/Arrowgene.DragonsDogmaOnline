@@ -16,15 +16,16 @@ namespace Arrowgene.Ddon.GameServer.Handler
 
         public override S2CCertClientChallengeRes Handle(GameClient client, C2SCertClientChallengeReq request)
         {
-            client.SetChallengeCompleted(true);
-
             Challenge.Response challenge = client.HandleChallenge(request);
             if (challenge.Error)
             {
+                // Critical: a failed challenge closes the connection.
                 Logger.Error(client, "Failed CertChallenge");
-                throw new ResponseErrorException(Shared.Model.ErrorCode.ERROR_CODE_SYSTEM_INTERNAL);
+                throw new ResponseErrorException(Shared.Model.ErrorCode.ERROR_CODE_SYSTEM_INTERNAL, true);
             }
-            
+
+            client.SetChallengeCompleted(true);
+
             return new S2CCertClientChallengeRes()
             {
                 PasswordSrcSize = challenge.DecryptedBlowFishKeyLength,
