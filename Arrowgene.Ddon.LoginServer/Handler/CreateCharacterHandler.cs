@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace Arrowgene.Ddon.LoginServer.Handler
 {
-    public class CreateCharacterHandler : LoginStructurePacketHandler<C2LCreateCharacterDataReq>
+    public class CreateCharacterHandler : LoginRequestPacketHandler<C2LCreateCharacterDataReq, L2CCreateCharacterDataRes>
     {
         private static readonly ServerLogger Logger = LogProvider.Logger<ServerLogger>(typeof(CreateCharacterHandler));
 
@@ -25,34 +25,34 @@ namespace Arrowgene.Ddon.LoginServer.Handler
             _AssetRepository = server.AssetRepository;
         }
 
-        public override void Handle(LoginClient client, StructurePacket<C2LCreateCharacterDataReq> packet)
+        public override L2CCreateCharacterDataRes Handle(LoginClient client, C2LCreateCharacterDataReq request)
         {
-            Logger.Debug(client, $"Created character '{packet.Structure.CharacterInfo.FirstName} {packet.Structure.CharacterInfo.LastName}'");
+            Logger.Debug(client, $"Created character '{request.CharacterInfo.FirstName} {request.CharacterInfo.LastName}'");
 
             Character character = new Character();
             character.AccountId = client.Account.Id;
-            character.CharacterId = packet.Structure.CharacterInfo.CharacterId;
-            character.UserId = packet.Structure.CharacterInfo.UserId;
-            character.Version = packet.Structure.CharacterInfo.Version;
+            character.CharacterId = request.CharacterInfo.CharacterId;
+            character.UserId = request.CharacterInfo.UserId;
+            character.Version = request.CharacterInfo.Version;
             character.GameMode = GameMode.Normal;
-            character.FirstName = packet.Structure.CharacterInfo.FirstName;
-            character.LastName = packet.Structure.CharacterInfo.LastName;
-            character.EditInfo = packet.Structure.CharacterInfo.EditInfo;
-            character.StatusInfo = packet.Structure.CharacterInfo.StatusInfo;
-            character.Job = packet.Structure.CharacterInfo.Job;
-            character.CharacterJobDataList = packet.Structure.CharacterInfo.CharacterJobDataList;
-            character.PlayPointList = packet.Structure.CharacterInfo.PlayPointList;
+            character.FirstName = request.CharacterInfo.FirstName;
+            character.LastName = request.CharacterInfo.LastName;
+            character.EditInfo = request.CharacterInfo.EditInfo;
+            character.StatusInfo = request.CharacterInfo.StatusInfo;
+            character.Job = request.CharacterInfo.Job;
+            character.CharacterJobDataList = request.CharacterInfo.CharacterJobDataList;
+            character.PlayPointList = request.CharacterInfo.PlayPointList;
             character.EquipmentTemplate = new EquipmentTemplate(
                 new Dictionary<JobId, Dictionary<EquipType, List<Item>>>()
                 {
                     {
-                        packet.Structure.CharacterInfo.Job,
+                        request.CharacterInfo.Job,
                         new Dictionary<EquipType, List<Item>>() {
                             {
                                 EquipType.Performance,
                                 Enumerable.Range(1, 15)
                                     .Select(equipSlot => {
-                                        CDataEquipItemInfo info = packet.Structure.CharacterInfo.CharacterEquipDataList.SelectMany(x => x.Equips).Where(x => x.EquipSlot == equipSlot).SingleOrDefault();
+                                        CDataEquipItemInfo info = request.CharacterInfo.CharacterEquipDataList.SelectMany(x => x.Equips).Where(x => x.EquipSlot == equipSlot).SingleOrDefault();
                                         if(info == null) {
                                             return null;
                                         } else {
@@ -74,7 +74,7 @@ namespace Arrowgene.Ddon.LoginServer.Handler
                                 EquipType.Visual,
                                 Enumerable.Range(1, 15)
                                     .Select(equipSlot => {
-                                        CDataEquipItemInfo info = packet.Structure.CharacterInfo.CharacterEquipViewDataList.SelectMany(x => x.Equips).Where(x => x.EquipSlot == equipSlot).SingleOrDefault();
+                                        CDataEquipItemInfo info = request.CharacterInfo.CharacterEquipViewDataList.SelectMany(x => x.Equips).Where(x => x.EquipSlot == equipSlot).SingleOrDefault();
                                         if(info == null) {
                                             return null;
                                         } else {
@@ -97,26 +97,26 @@ namespace Arrowgene.Ddon.LoginServer.Handler
                 },
                 new Dictionary<JobId, List<Item?>>());
             // Every new character starts with 1 jewlery slot, rest are bought from the dragon.
-            character.JewelrySlotNum = 1; // packet.Structure.CharacterInfo.JewelrySlotNum;
-            //character.CharacterItemSlotInfoList = packet.Structure.CharacterInfo.CharacterItemSlotInfoList;
-            //character.UnkCharData0 = packet.Structure.CharacterInfo.UnkCharData0;
-            //character.UnkCharData1 = packet.Structure.CharacterInfo.UnkCharData1;
+            character.JewelrySlotNum = 1; // request.CharacterInfo.JewelrySlotNum;
+            //character.CharacterItemSlotInfoList = request.CharacterInfo.CharacterItemSlotInfoList;
+            //character.UnkCharData0 = request.CharacterInfo.UnkCharData0;
+            //character.UnkCharData1 = request.CharacterInfo.UnkCharData1;
 
-            character.MyPawnSlotNum = packet.Structure.CharacterInfo.MyPawnSlotNum;
-            character.RentalPawnSlotNum = packet.Structure.CharacterInfo.RentalPawnSlotNum;
+            character.MyPawnSlotNum = request.CharacterInfo.MyPawnSlotNum;
+            character.RentalPawnSlotNum = request.CharacterInfo.RentalPawnSlotNum;
 
-            //character.OrbStatusList = packet.Structure.CharacterInfo.OrbStatusList;
-            //character.MsgSetList = packet.Structure.CharacterInfo.MsgSetList;
-            //character.ShortCutList = packet.Structure.CharacterInfo.ShortCutList;
-            //character.CommunicationShortCutList = packet.Structure.CharacterInfo.CommunicationShortCutList;
-            character.MatchingProfile = packet.Structure.CharacterInfo.MatchingProfile;
-            character.CharacterProfile.CDataArisenProfile = packet.Structure.CharacterInfo.ArisenProfile;
-            character.HideEquipHead = packet.Structure.CharacterInfo.HideEquipHead;
-            character.HideEquipLantern = packet.Structure.CharacterInfo.HideEquipLantern;
-            character.HideEquipHeadPawn = packet.Structure.CharacterInfo.HideEquipHeadPawn;
-            character.HideEquipLanternPawn = packet.Structure.CharacterInfo.HideEquipLanternPawn;
-            character.ArisenProfileShareRange = packet.Structure.CharacterInfo.ArisenProfileShareRange;
-            character.OnlineStatus = packet.Structure.CharacterInfo.OnlineStatus;
+            //character.OrbStatusList = request.CharacterInfo.OrbStatusList;
+            //character.MsgSetList = request.CharacterInfo.MsgSetList;
+            //character.ShortCutList = request.CharacterInfo.ShortCutList;
+            //character.CommunicationShortCutList = request.CharacterInfo.CommunicationShortCutList;
+            character.MatchingProfile = request.CharacterInfo.MatchingProfile;
+            character.CharacterProfile.CDataArisenProfile = request.CharacterInfo.ArisenProfile;
+            character.HideEquipHead = request.CharacterInfo.HideEquipHead;
+            character.HideEquipLantern = request.CharacterInfo.HideEquipLantern;
+            character.HideEquipHeadPawn = request.CharacterInfo.HideEquipHeadPawn;
+            character.HideEquipLanternPawn = request.CharacterInfo.HideEquipLanternPawn;
+            character.ArisenProfileShareRange = request.CharacterInfo.ArisenProfileShareRange;
+            character.OnlineStatus = request.CharacterInfo.OnlineStatus;
 
             // Use the ArisenCsv row for the selected job as the preset equipment when the character is created
             ArisenCsv ActiveJobPreset = Server.AssetRepository.ArisenAsset.Where(x => x.Job == character.Job).Single();
@@ -337,8 +337,8 @@ namespace Arrowgene.Ddon.LoginServer.Handler
             );
             character.HideEquipHead = ActiveJobPreset.DisplayHelmet;
             character.HideEquipLantern = ActiveJobPreset.DisplayLantern;
-            character.HideEquipHeadPawn = packet.Structure.CharacterInfo.HideEquipHeadPawn;
-            character.HideEquipLanternPawn = packet.Structure.CharacterInfo.HideEquipLanternPawn;
+            character.HideEquipHeadPawn = request.CharacterInfo.HideEquipHeadPawn;
+            character.HideEquipLanternPawn = request.CharacterInfo.HideEquipLanternPawn;
             character.LearnedCustomSkills = character.EquippedCustomSkillsDictionary.SelectMany(jobAndSkills => jobAndSkills.Value).Where(skill => skill != null).ToList();
             character.LearnedAbilities = character.EquippedAbilitiesDictionary.SelectMany(jobAndAugs => jobAndAugs.Value).Where(aug => aug != null).ToList();
             character.Storage = new Storages(Server.AssetRepository.StorageAsset.ToDictionary(x => x.StorageType, x => x.SlotMax));
@@ -457,7 +457,7 @@ namespace Arrowgene.Ddon.LoginServer.Handler
             {
                 Logger.Error(client, "Failed to create character");
                 res.Result = 1;
-                client.Send(res);
+                return res;
             }
 
             // Populate extra tables for the characters
@@ -524,7 +524,7 @@ namespace Arrowgene.Ddon.LoginServer.Handler
 
             res.Result = 0;
             res.WaitNum = 0;
-            client.Send(res);
+            return res;
         }
     }
 }
