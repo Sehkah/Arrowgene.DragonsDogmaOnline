@@ -143,7 +143,28 @@ namespace Arrowgene.Ddon.Server.Network
             queue.Enqueue((this, res));
         }
 
+        /// <summary>
+        /// Send the one response to a request, and throw if it could not be written, so that the handler can answer
+        /// with an error instead: a request with no response ends in a timeout and a disconnect (PC 03040008 0x8855a0).
+        /// </summary>
+        public void SendResponse<TResStruct>(TResStruct res) where TResStruct : class, IPacketStructure, new()
+        {
+            if (!TrySend(new StructurePacket<TResStruct>(res)))
+            {
+                throw new InvalidOperationException($"{typeof(TResStruct).Name} could not be written");
+            }
+        }
+
         public void Send(Packet packet)
+        {
+            TrySend(packet);
+        }
+
+        /// <summary>
+        /// Send a packet, returning false if it could not be written. A packet held back because the client is not
+        /// ready yet was dealt with as intended, so that returns true.
+        /// </summary>
+        public bool TrySend(Packet packet)
         {
             if (!_challengeCompleted
                 && packet.Id != PacketId.S2C_CERT_CLIENT_CHALLENGE_RES
@@ -155,7 +176,7 @@ namespace Arrowgene.Ddon.Server.Network
                 // to parse packets headers and process other packets.
                 Logger.Debug(this,
                     $"Tried to send Packet:\"{packet.PrintHeader()}\", while client not yet considered ready");
-                return;
+                return true;
             }
 
             byte[] data;
@@ -166,14 +187,29 @@ namespace Arrowgene.Ddon.Server.Network
             catch (Exception ex)
             {
                 Logger.Exception(this, ex);
-                return;
+                return false;
             }
 
+            if (data == null)
+            {
+                return false;
+            }
 
             LastPacketSentToClient = packet.Id;
 
             SendRaw(data);
-            Logger.LogPacket(this, packet);
+
+            try
+            {
+                Logger.LogPacket(this, packet);
+            }
+            catch (Exception ex)
+            {
+                // The packet has left: this must not read as a failed send.
+                Logger.Exception(this, ex);
+            }
+
+            return true;
         }
 
         /// <summary>

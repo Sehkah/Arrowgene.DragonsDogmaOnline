@@ -35,6 +35,9 @@ namespace Arrowgene.Ddon.Server.Network
             try
             {
                 response = Handle(client, request.Structure);
+
+                // Inside the try: a response that can not be written is answered with the error below.
+                client.SendResponse(response);
             }
             catch (SQLiteException ex)
             {
@@ -66,9 +69,14 @@ namespace Arrowgene.Ddon.Server.Network
                 client.Close();
                 throw;
             }
-            catch (NotImplementedException ex)
+            catch (NotImplementedException)
             {
-                throw new ResponseErrorException(ErrorCode.ERROR_CODE_NOT_IMPLEMENTED, ex.Message, ex);
+                response = new TResStruct
+                {
+                    Error = (uint)ErrorCode.ERROR_CODE_NOT_IMPLEMENTED
+                };
+                client.Send(response);
+                throw;
             }
             catch (ResponseErrorException ex)
             {
@@ -90,10 +98,6 @@ namespace Arrowgene.Ddon.Server.Network
                 {
                     client.Close();
                 }
-
-                // The error above is this request's one response. A second makes the client run its handler again, and
-                // on a request with the once flag set the second shows the dialog the client meant to suppress.
-                return;
             }
             catch (Exception)
             {
@@ -101,8 +105,7 @@ namespace Arrowgene.Ddon.Server.Network
                 response.Error = (uint) ErrorCode.ERROR_CODE_FAIL;
                 client.Send(response);
                 throw;
-            }    
-            client.Send(response);
+            }
         }
 
     }

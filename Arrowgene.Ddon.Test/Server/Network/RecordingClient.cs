@@ -52,7 +52,19 @@ namespace Arrowgene.Ddon.Test.Server.Network
         public List<SentFrame> Frames { get; } = new List<SentFrame>();
         public int Closes { get; private set; }
 
-        public override void SendRaw(byte[] data) => Frames.Add(SentFrame.From(_factory, data));
+        /// <summary>Behave as a dead socket might.</summary>
+        public bool ThrowOnSend { get; init; }
+
+        public override void SendRaw(byte[] data)
+        {
+            if (ThrowOnSend)
+            {
+                throw new ObjectDisposedException("socket");
+            }
+
+            Frames.Add(SentFrame.From(_factory, data));
+        }
+
         public override void Close() => Closes++;
     }
 
