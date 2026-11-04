@@ -90,6 +90,10 @@ namespace Arrowgene.Ddon.Server.Network
                 {
                     client.Close();
                 }
+
+                // The error above is this request's one response. A second makes the client run its handler again, and
+                // on a request with the once flag set the second shows the dialog the client meant to suppress.
+                return;
             }
             catch (Exception)
             {
