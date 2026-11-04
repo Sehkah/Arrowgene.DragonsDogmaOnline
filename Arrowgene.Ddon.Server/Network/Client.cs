@@ -127,7 +127,15 @@ namespace Arrowgene.Ddon.Server.Network
 
             foreach (IPacket packet in packets)
             {
-                Logger.LogPacket(this, packet);
+                try
+                {
+                    Logger.LogPacket(this, packet);
+                }
+                catch (Exception ex)
+                {
+                    // Logging a structure parses it, and a malformed packet is the handler's to answer.
+                    Logger.Exception(this, ex);
+                }
             }
 
             return packets;
@@ -244,6 +252,11 @@ namespace Arrowgene.Ddon.Server.Network
             catch (Exception ex)
             {
                 Logger.Exception(this, ex);
+                return;
+            }
+
+            if (data == null)
+            {
                 return;
             }
 

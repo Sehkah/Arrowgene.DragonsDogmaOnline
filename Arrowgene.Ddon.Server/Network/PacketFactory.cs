@@ -30,6 +30,7 @@ namespace Arrowgene.Ddon.Server.Network
         private const int PacketHeaderSize = 9;
         private const int PacketMinimumDataSize = 16;
         private const int PacketBlockSize = 16;
+        private const int PacketMaximumDataSize = ushort.MaxValue - ushort.MaxValue % PacketBlockSize;
         private const uint CamelliaKeyLength = 32 * 8;
 
         private bool _readHeader;
@@ -135,10 +136,12 @@ namespace Arrowgene.Ddon.Server.Network
             //00 20 B8 F8 
             //data = Util.ReplaceBytes(data, new byte[] {0x00, 0x20, 0xB8, 0xF8}, new byte[] {0x00, 0x00, 0x00, 0x01});
 
-            int totalLength = data.Length + PacketLengthFieldSize + PacketHeaderSize;
-            if (totalLength < 0 || totalLength > ushort.MaxValue)
+            // With its padding, as that is what goes in the u16 length. The client has no limit below the u16 (PC 03040008 0x9d6d69).
+            int unpaddedLength = data.Length + PacketHeaderSize;
+            int frameLength = unpaddedLength + PacketBlockSize - unpaddedLength % PacketBlockSize;
+            if (frameLength > PacketMaximumDataSize)
             {
-                Logger.Error($"dataLength < 0 || dataLength > ushort.MaxValue (dataLength:{totalLength})");
+                Logger.Error($"Frame of {frameLength} over the limit of {PacketMaximumDataSize} (Packet:{packet.Id})");
                 return null;
             }
 

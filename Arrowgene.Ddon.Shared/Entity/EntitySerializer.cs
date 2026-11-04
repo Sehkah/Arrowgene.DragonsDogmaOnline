@@ -2268,6 +2268,22 @@ namespace Arrowgene.Ddon.Shared.Entity
             return buffer.ReadBytes(length);
         }
 
+        /// <summary>
+        /// A byte array after its s32 length, where the length comes from the client: it has to fit what is left.
+        /// One that does not reads as a short packet.
+        /// </summary>
+        protected byte[] ReadLengthPrefixedByteArray(IBuffer buffer)
+        {
+            int length = ReadInt32(buffer);
+            int remaining = buffer.Size - buffer.Position;
+            if (length < 0 || length > remaining)
+            {
+                throw new System.IO.EndOfStreamException($"Length {length} with {remaining} bytes left");
+            }
+
+            return ReadByteArray(buffer, length);
+        }
+
         protected byte ReadByte(IBuffer buffer)
         {
             return buffer.ReadByte();

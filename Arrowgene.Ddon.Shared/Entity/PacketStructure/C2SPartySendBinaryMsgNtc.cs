@@ -31,8 +31,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
             {
                 C2SPartySendBinaryMsgNtc obj = new C2SPartySendBinaryMsgNtc();
                 obj.CharacterIdList = ReadEntityList<CDataCommonU32>(buffer);
-                int dataLength = ReadInt32(buffer);
-                obj.Data = ReadByteArray(buffer, dataLength);
+                obj.Data = ReadLengthPrefixedByteArray(buffer);
                 return obj;
             }
         }

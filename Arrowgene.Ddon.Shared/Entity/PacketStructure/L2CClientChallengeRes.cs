@@ -1,3 +1,4 @@
+using System;
 using Arrowgene.Buffers;
 using Arrowgene.Ddon.Shared.Network;
 
@@ -24,7 +25,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 WriteByte(buffer, obj.PasswordSrcSize);
                 WriteByte(buffer, obj.PasswordEncSize);
                 WriteByteArray(buffer, obj.PasswordEnc);
-                WriteByteArray(buffer, new byte[64 - obj.PasswordEncSize]); // Padding.
+                WriteByteArray(buffer, new byte[Math.Max(0, 64 - obj.PasswordEncSize)]); // Padding. The size comes from the client.
             }
 
             public override L2CClientChallengeRes Read(IBuffer buffer)
