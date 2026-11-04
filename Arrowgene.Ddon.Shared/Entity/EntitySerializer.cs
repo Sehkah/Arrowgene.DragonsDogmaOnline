@@ -2292,9 +2292,7 @@ namespace Arrowgene.Ddon.Shared.Entity
 
         protected void WriteMtString(IBuffer buffer, string str)
         {
-            byte[] utf8 = Encoding.UTF8.GetBytes(str);
-            buffer.WriteUInt16((ushort)utf8.Length, Endianness.Big);
-            buffer.WriteBytes(utf8);
+            buffer.WriteMtString(str);
         }
 
         protected string ReadMtString(IBuffer buffer)
