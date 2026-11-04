@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Arrowgene.Buffers;
 using Arrowgene.Ddon.Shared;
 using Arrowgene.Ddon.Shared.Crypto;
@@ -44,6 +45,10 @@ namespace Arrowgene.Ddon.Server.Network
         private readonly Memory<byte> _t8Decrypt;
         private Memory<byte> _camelliaSubKey;
         private bool _firstPacket;
+
+        // A client's sends come from its lane and from timers. The count and the encryption scratch are all they share:
+        // each frame starts its cipher from the fixed IV, so frames need no order here and the socket stays outside.
+        private readonly Lock _writeLock = new Lock();
 
         /// <summary>
         /// The last <see cref="Read"/> met bytes that can not be a frame, so the stream can not be followed any further.
@@ -164,8 +169,11 @@ namespace Arrowgene.Ddon.Server.Network
             if (packet.Id.HandlerSubId == 16)
             {
                 // only increase for _NTC packets
-                packet.Count = _packetCount;
-                _packetCount++;
+                lock (_writeLock)
+                {
+                    packet.Count = _packetCount;
+                    _packetCount++;
+                }
             }
             else
             {
@@ -326,15 +334,18 @@ namespace Arrowgene.Ddon.Server.Network
 
         public byte[] Encrypt(byte[] data)
         {
-            Camellia.Encrypt(
-                data,
-                out Span<byte> encrypted,
-                CamelliaKeyLength,
-                _camelliaSubKey.Span,
-                Util.Copy(CamelliaIv),
-                _t8Encrypt.Span
-            );
-            return encrypted.ToArray();
+            lock (_writeLock)
+            {
+                Camellia.Encrypt(
+                    data,
+                    out Span<byte> encrypted,
+                    CamelliaKeyLength,
+                    _camelliaSubKey.Span,
+                    Util.Copy(CamelliaIv),
+                    _t8Encrypt.Span
+                );
+                return encrypted.ToArray();
+            }
         }
 
         public byte[] Decrypt(byte[] encrypted)
