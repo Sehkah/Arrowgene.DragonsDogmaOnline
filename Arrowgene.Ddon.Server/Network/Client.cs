@@ -26,6 +26,12 @@ namespace Arrowgene.Ddon.Server.Network
          */
         private bool _challengeCompleted;
 
+        /**
+         * The received stream could not be followed. The connection has been closed,
+         * and anything still on its way in is dropped.
+         */
+        private bool _receiveFailed;
+
         public Client(ClientHandle clientHandle, PacketFactory packetFactory) : this(packetFactory, clientHandle.Identity)
         {
             ClientHandle = clientHandle;
@@ -89,23 +95,29 @@ namespace Arrowgene.Ddon.Server.Network
 
         public List<IPacket> Receive(byte[] data)
         {
+            if (_receiveFailed)
+            {
+                return [];
+            }
+
             List<IPacket> packets;
             try
             {
                 packets = _packetFactory.Read(data);
-            }
-            catch (ResponseErrorException ex)
-            {
-                // Usually thrown by the Camelia cipher complaining about misshapen packets.
-                // We shouldn't tolerate these connections and just kick them.
-                Logger.Exception(this, ex);
-                packets = [];
-                Close();
+                _receiveFailed = _packetFactory.ReadFailed;
             }
             catch (Exception ex)
             {
                 Logger.Exception(this, ex);
                 packets = [];
+                _receiveFailed = true;
+            }
+
+            if (_receiveFailed)
+            {
+                // PacketFactory could not follow the stream, as with a frame the cipher can not take or a bad source byte.
+                // We shouldn't tolerate these connections and just kick them. A client that lost its place is lost anyway.
+                Close();
             }
 
             if (packets.Count > 0)

@@ -29,6 +29,7 @@ namespace Arrowgene.Ddon.Server.Network
         private const int PacketLengthFieldSize = 2;
         private const int PacketHeaderSize = 9;
         private const int PacketMinimumDataSize = 16;
+        private const int PacketBlockSize = 16;
         private const uint CamelliaKeyLength = 32 * 8;
 
         private bool _readHeader;
@@ -43,6 +44,11 @@ namespace Arrowgene.Ddon.Server.Network
         private Memory<byte> _camelliaSubKey;
         private bool _firstPacket;
 
+        /// <summary>
+        /// The last <see cref="Read"/> met bytes that can not be a frame, so the stream can not be followed any further.
+        /// What it decoded before them is still returned. A server should close the connection.
+        /// </summary>
+        public bool ReadFailed { get; private set; }
 
         public PacketFactory(IPacketIdResolver packetIdResolver)
         {
@@ -188,6 +194,7 @@ namespace Arrowgene.Ddon.Server.Network
         public List<IPacket> Read(byte[] data)
         {
             List<IPacket> packets = new List<IPacket>();
+            ReadFailed = false;
             if (_buffer == null)
             {
                 _buffer = Util.Buffer.Provide(data);
@@ -207,9 +214,11 @@ namespace Arrowgene.Ddon.Server.Network
                 if (!_readHeader && _buffer.Size - _buffer.Position >= PacketLengthFieldSize)
                 {
                     _dataSize = _buffer.ReadUInt16(Endianness.Big);
-                    if (_dataSize < PacketMinimumDataSize)
+                    if (_dataSize < PacketMinimumDataSize || _dataSize % PacketBlockSize != 0)
                     {
-                        Logger.Error($"DataSize:{_dataSize} < PacketMinimumDataSize:{PacketMinimumDataSize}");
+                        // The cipher only takes whole blocks, and no client sends a frame that is not one.
+                        Logger.Error($"DataSize:{_dataSize} is under {PacketMinimumDataSize} or not a multiple of {PacketBlockSize}");
+                        ReadFailed = true;
                         Reset();
                         return packets;
                     }
@@ -270,7 +279,8 @@ namespace Arrowgene.Ddon.Server.Network
                         if (packetSource != PacketSource.Server
                             && packetSource != PacketSource.Client)
                         {
-                            Logger.Error($"Invalid Server Type");
+                            Logger.Error($"Invalid packet source:{packetSourceByte}");
+                            ReadFailed = true;
                             Reset();
                             return packets;
                         }
@@ -294,19 +304,12 @@ namespace Arrowgene.Ddon.Server.Network
                     _readHeader = false;
                     read = _buffer.Position != _buffer.Size;
                 }
-                else
-                {
-                    if (_dataSize > PacketMinimumDataSize)
-                    {
-                        // If datasize was evaluated and is a valid size, assume that the data might be split across multiple TCP packets
-                        // reset position to before header was read and hope data arrives with the next packet
-                        _readHeader = false;
-                        _buffer.Position -= 2;
-                    }
-                }
+
+                // Otherwise the data is split across TCP packets, possibly inside the length prefix: _readHeader, _dataSize
+                // and the position below hold the place until the rest arrives.
             }
 
-            if (_buffer.Position == _buffer.Size)
+            if (_buffer.Position == _buffer.Size && !_readHeader)
             {
                 Reset();
             }
