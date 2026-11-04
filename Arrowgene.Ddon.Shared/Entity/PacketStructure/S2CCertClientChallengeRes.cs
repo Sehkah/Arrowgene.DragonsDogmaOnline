@@ -25,7 +25,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 WriteByte(buffer, obj.PasswordSrcSize);
                 WriteByte(buffer, obj.PasswordEncSize);
                 WriteByteArray(buffer, obj.PasswordEnc);
-                WriteByteArray(buffer, new byte[Math.Max(0, 64 - obj.PasswordEncSize)]); // Padding. The size comes from the client.
+                WriteByteArray(buffer, new byte[Math.Max(0, 62 - obj.PasswordEnc.Length)]); // u8[62], PC 0x757da0.
             }
 
             public override S2CCertClientChallengeRes Read(IBuffer buffer)
@@ -34,7 +34,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 ReadServerResponse(buffer, obj);
                 obj.PasswordSrcSize = ReadByte(buffer);
                 obj.PasswordEncSize = ReadByte(buffer);
-                obj.PasswordEnc = ReadByteArray(buffer, obj.PasswordEncSize);
+                obj.PasswordEnc = ReadByteArray(buffer, 62);
                 return obj;
             }
         }

@@ -85,13 +85,13 @@ namespace Arrowgene.Ddon.Test.Server.Network
         }
 
         [Fact]
-        public void A_real_password_size_writes_the_same_bytes_as_before()
+        public void A_real_password_size_writes_the_block_of_62()
         {
             byte[] password = new byte[16];
 
             byte[] game = EntitySerializer.Get<S2CCertClientChallengeRes>().Write(new S2CCertClientChallengeRes { PasswordEncSize = 16, PasswordEnc = password });
 
-            Assert.Equal(8 + 2 + 16 + 48, game.Length);
+            Assert.Equal(8 + 2 + 62, game.Length);
         }
 
         private class LoggingClient : RecordingClient

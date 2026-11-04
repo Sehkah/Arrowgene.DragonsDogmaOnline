@@ -1,3 +1,4 @@
+using System;
 using Arrowgene.Buffers;
 using Arrowgene.Ddon.Shared.Network;
 
@@ -30,6 +31,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 WriteByte(buffer, obj.PasswordSrcSize);
                 WriteByte(buffer, obj.PasswordEncSize);
                 WriteByteArray(buffer, obj.PasswordEnc);
+                WriteByteArray(buffer, new byte[Math.Max(0, 62 - obj.PasswordEnc.Length)]);
             }
 
             public override C2SCertClientChallengeReq Read(IBuffer buffer)
@@ -40,7 +42,7 @@ namespace Arrowgene.Ddon.Shared.Entity.PacketStructure
                 buffer.ReadBytes(3); // Padding?
                 obj.PasswordSrcSize = ReadByte(buffer);
                 obj.PasswordEncSize = ReadByte(buffer);
-                obj.PasswordEnc = ReadByteArray(buffer, obj.PasswordEncSize);
+                obj.PasswordEnc = ReadByteArray(buffer, 62); // u8[62], PC 0x77cfe0.
                 return obj;
             }
         }
