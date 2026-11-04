@@ -34,6 +34,7 @@ namespace Arrowgene.Ddon.Shared.Entity
             Create(new CDataAbilityParam.Serializer());
             Create(new CDataAchieveCategoryStatus.Serializer());
             Create(new CDataAchieveRewardCommon.Serializer());
+            Create(new CDataAchievementCompleteElement.Serializer());
             Create(new CDataAchievementFurnitureReward.Serializer());
             Create(new CDataAchievementIdentifier.Serializer());
             Create(new CDataAchievementProgress.Serializer());
