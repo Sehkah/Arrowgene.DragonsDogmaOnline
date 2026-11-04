@@ -7,7 +7,9 @@ namespace Arrowgene.Ddon.Test
     public class TestBase : IDisposable
     {
         private ITestOutputHelper _output;
+#if (DEBUG)
         private EventHandler<LogWriteEventArgs> _onLogWrite;
+#endif
 
         public TestBase(ITestOutputHelper output)
         {
